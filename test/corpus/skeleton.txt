@@ -11,6 +11,7 @@ component Foo() {}
     (go_text))
   (component_declaration
     name: (identifier)
-    (body))
+    parameters: (parameter_list)
+    body: (body))
   (go_chunk
     (go_text)))
