@@ -203,6 +203,34 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
         depth++; ADV();
         break;
       }
+      case '|': {
+        // stop_pipe is for go_text and go_interp_text at depth 0 before |>
+        // so the PIPE token can match. Only check at depth 0.
+        if (depth == 0) {
+          // peek at next char to see if it's >
+          if (peek_pos < peek_len) {
+            // peeked chars; check next peeked char
+            if ((peek_pos + 1) < peek_len && peek[peek_pos + 1] == '>') {
+              l->mark_end(l); return consumed;
+            }
+            // else just a bare | in peek buf — fall through to default
+          } else {
+            // reading from lexer
+            l->mark_end(l);
+            advance(l); // consume '|' speculatively
+            if (l->lookahead == '>') {
+              // it's a |> pipe — stop BEFORE it (don't consume)
+              return consumed;
+            }
+            // not |> — it was just '|', include it in the token
+            consumed = true;
+            l->mark_end(l);
+            continue;
+          }
+        }
+        ADV();
+        break;
+      }
       case '?': {
         if (depth == 0) { l->mark_end(l); return consumed; }
         ADV();
@@ -229,6 +257,15 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
 #undef ADV
 }
 
+static bool scan_pipe(TSLexer *l) {
+  if (l->lookahead != '|') return false;
+  advance(l);
+  if (l->lookahead != '>') return false;
+  advance(l);
+  l->mark_end(l);
+  return true;
+}
+
 static bool scan_raw_text(TSLexer *l) {
   bool consumed = false;
   while (!l->eof(l)) {
@@ -240,6 +277,9 @@ static bool scan_raw_text(TSLexer *l) {
 }
 
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
+  if (valid[PIPE]) {
+    if (scan_pipe(l)) { l->result_symbol = PIPE; return true; }
+  }
   if (valid[GO_COND_TEXT]) {
     if (scan_go_text_impl(l, true, false)) { l->result_symbol = GO_COND_TEXT; return true; }
   }
