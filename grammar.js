@@ -26,7 +26,6 @@ module.exports = grammar({
       $.html_comment,
       $.content_comment,
       $.interpolation,
-      $.control_flow,
       $.go_block,
       $.text,
     ),
@@ -51,27 +50,20 @@ module.exports = grammar({
     pipeline: $ => seq($.go_expr, repeat(seq($.pipe, $.go_expr))),
     go_expr: $ => $.go_text,
 
-    // Task 6 stubs — will be implemented in the next task
+    // go_block ({{ ... }}) parses correctly; control_flow deferred to Task 6
     go_block: $ => seq('{{', $.go_text, '}}'),
-    control_flow: $ => seq('{', choice(
-      seq(/if|for/, $.go_expr, '{', repeat($.attribute), '}',
-        optional(seq(/else/, '{', repeat($.attribute), '}'))),
-    ), '}'),
 
-    // Attributes
+    // Attributes (conditional_attribute deferred to Task 6)
     attribute: $ => choice(
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
       $.spread_attribute,
-      $.conditional_attribute,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
     expr_attribute: $ => seq($.attribute_name, '=', '{', $.pipeline, optional('?'), '}'),
     bool_attribute: $ => prec(-1, $.attribute_name),
     spread_attribute: $ => seq('{', '...', $.go_expr, '}'),
-    conditional_attribute: $ => seq('{', /if|for/, $.go_expr, '{', repeat($.attribute), '}',
-      optional(seq(/else/, '{', repeat($.attribute), '}')), '}'),
 
     attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
     quoted_string: $ => choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'")),

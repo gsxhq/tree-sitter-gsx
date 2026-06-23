@@ -58,6 +58,19 @@ static bool scan_go_text(TSLexer *l) {
       case '\'':{ advance(l); while (!l->eof(l) && l->lookahead!='\'') { if (l->lookahead=='\\') advance(l); advance(l);} if(!l->eof(l)) advance(l); break; }
       case '/': { advance(l); if (l->lookahead=='/') { while(!l->eof(l)&&l->lookahead!='\n') advance(l);} else if (l->lookahead=='*'){ advance(l); int32_t prev=0; while(!l->eof(l)&&!(prev=='*'&&l->lookahead=='/')){prev=l->lookahead;advance(l);} if(!l->eof(l)) advance(l);} break; }
       case '{': depth++; advance(l); break;
+      case '?': {
+        if (depth == 0) {
+          // Stop before `?` so the grammar's optional('?') in interpolation /
+          // expr_attribute can match it as a distinct token.  Go has no `?`
+          // operator, so the only depth-0 `?` is a try-marker.  A `?` inside
+          // a string/rune literal is already consumed by the string handlers
+          // above, so this branch is unreachable in that context.
+          l->mark_end(l);
+          return consumed;
+        }
+        advance(l);
+        break;
+      }
       case '}': {
         if (depth == 0) {
           l->mark_end(l);

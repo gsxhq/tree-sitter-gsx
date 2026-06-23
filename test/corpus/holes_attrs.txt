@@ -1,5 +1,5 @@
 ==================
-holes, try-marker, expr/bool/spread/conditional attributes
+holes, try-marker, expr/bool/spread attributes
 ==================
 
 component H(x int) {
@@ -48,5 +48,34 @@ component H(x int) {
               (go_text))))
         (end_tag
           (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+try-marker go_text stops before ?
+==================
+
+component T() {
+  {x}
+  {x?}
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (interpolation
+        (pipeline
+          (go_expr
+            (go_text))))
+      (interpolation
+        (pipeline
+          (go_expr
+            (go_text))))))
   (go_chunk
     (go_text)))
