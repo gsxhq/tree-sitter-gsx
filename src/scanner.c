@@ -229,6 +229,16 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
 #undef ADV
 }
 
+static bool scan_raw_text(TSLexer *l) {
+  bool consumed = false;
+  while (!l->eof(l)) {
+    if (l->lookahead == '@') { l->mark_end(l); advance(l); if (l->lookahead=='{') return consumed; consumed=true; continue; }
+    if (l->lookahead == '<') { l->mark_end(l); advance(l); if (l->lookahead=='/') return consumed; consumed=true; continue; }
+    advance(l); consumed = true; l->mark_end(l);
+  }
+  l->mark_end(l); return consumed;
+}
+
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
   if (valid[GO_COND_TEXT]) {
     if (scan_go_text_impl(l, true, false)) { l->result_symbol = GO_COND_TEXT; return true; }
@@ -236,8 +246,11 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
   if (valid[GO_INTERP_TEXT]) {
     if (scan_go_text_impl(l, false, true)) { l->result_symbol = GO_INTERP_TEXT; return true; }
   }
+  if (valid[RAW_TEXT]) {
+    if (scan_raw_text(l)) { l->result_symbol = RAW_TEXT; return true; }
+  }
   if (valid[GO_TEXT]) {
     if (scan_go_text_impl(l, false, false)) { l->result_symbol = GO_TEXT; return true; }
   }
-  return false; // RAW_TEXT (Task 8), PIPE (Task 9) added later
+  return false;
 }

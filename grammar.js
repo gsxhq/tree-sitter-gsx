@@ -26,6 +26,7 @@ module.exports = grammar({
 
     body: $ => seq('{', repeat($._node), '}'),
     _node: $ => choice(
+      $.raw_element,
       $.element,
       $.fragment,
       $.doctype,
@@ -38,6 +39,12 @@ module.exports = grammar({
     ),
 
     fragment: $ => seq('<>', repeat($._node), '</>'),
+    raw_element: $ => seq(
+      seq('<', field('name', alias(/[Ss][Cc][Rr][Ii][Pp][Tt]|[Ss][Tt][Yy][Ll][Ee]/, $.tag_name)), repeat($.attribute), '>'),
+      repeat(choice($.raw_text, $.at_hole)),
+      seq('</', alias(/[A-Za-z]+/, $.tag_name), '>'),
+    ),
+    at_hole: $ => seq('@{', $.go_expr, '}'),
     doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
     html_comment: $ => seq('<!--', /([^-]|-[^-]|--[^>])*/, '-->'),
     content_comment: $ => seq('{/*', /([^*]|\*[^/])*/, '*/}'),
