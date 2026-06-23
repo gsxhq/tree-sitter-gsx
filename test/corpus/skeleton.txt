@@ -1,0 +1,12 @@
+==================
+empty component
+==================
+
+component Foo() {}
+
+---
+
+(source_file
+  (component_declaration
+    name: (identifier)
+    (body)))

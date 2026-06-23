@@ -1,0 +1,12 @@
+{
+  "grammars": [
+    {
+      "name": "gsx",
+      "scope": "source.gsx",
+      "file-types": ["gsx"],
+      "injection-regex": "^gsx$",
+      "path": "."
+    }
+  ],
+  "metadata": { "version": "0.0.1", "license": "MIT", "description": "tree-sitter grammar for gsx" }
+}

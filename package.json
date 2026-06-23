@@ -1,0 +1,8 @@
+{
+  "name": "tree-sitter-gsx",
+  "version": "0.0.1",
+  "private": true,
+  "description": "tree-sitter grammar for the gsx templating language",
+  "devDependencies": { "tree-sitter-cli": "^0.26.0" },
+  "scripts": { "generate": "tree-sitter generate", "test": "tree-sitter test" }
+}
