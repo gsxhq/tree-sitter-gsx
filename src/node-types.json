@@ -12,6 +12,10 @@
           "named": true
         },
         {
+          "type": "conditional_attribute",
+          "named": true
+        },
+        {
           "type": "expr_attribute",
           "named": true
         },
@@ -27,6 +31,53 @@
     }
   },
   {
+    "type": "block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "doctype",
+          "named": true
+        },
+        {
+          "type": "element",
+          "named": true
+        },
+        {
+          "type": "fragment",
+          "named": true
+        },
+        {
+          "type": "go_block",
+          "named": true
+        },
+        {
+          "type": "html_comment",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "body",
     "named": true,
     "fields": {},
@@ -36,6 +87,10 @@
       "types": [
         {
           "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
           "named": true
         },
         {
@@ -131,9 +186,59 @@
     }
   },
   {
+    "type": "conditional_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "go_cond_text",
+          "named": true
+        },
+        {
+          "type": "keyword",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "content_comment",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "control_flow",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "else_clause",
+          "named": true
+        },
+        {
+          "type": "go_cond_text",
+          "named": true
+        },
+        {
+          "type": "keyword",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "doctype",
@@ -150,6 +255,10 @@
       "types": [
         {
           "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
           "named": true
         },
         {
@@ -190,6 +299,29 @@
         },
         {
           "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         }
       ]
@@ -239,6 +371,10 @@
       "types": [
         {
           "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
           "named": true
         },
         {
@@ -318,6 +454,21 @@
     }
   },
   {
+    "type": "go_interp_expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_interp_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "html_comment",
     "named": true,
     "fields": {}
@@ -327,11 +478,47 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
+          "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "doctype",
+          "named": true
+        },
+        {
+          "type": "element",
+          "named": true
+        },
+        {
+          "type": "fragment",
+          "named": true
+        },
+        {
+          "type": "go_block",
+          "named": true
+        },
+        {
+          "type": "html_comment",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
           "type": "pipeline",
+          "named": true
+        },
+        {
+          "type": "text",
           "named": true
         }
       ]
@@ -351,7 +538,7 @@
       "required": true,
       "types": [
         {
-          "type": "go_expr",
+          "type": "go_interp_expr",
           "named": true
         },
         {
@@ -559,11 +746,23 @@
     "named": false
   },
   {
+    "type": "go_cond_text",
+    "named": true
+  },
+  {
+    "type": "go_interp_text",
+    "named": true
+  },
+  {
     "type": "go_text",
     "named": true
   },
   {
     "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "keyword",
     "named": true
   },
   {

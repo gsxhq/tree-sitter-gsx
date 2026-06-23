@@ -1,7 +1,8 @@
 #include "tree_sitter/parser.h"
 #include <string.h>
 
-enum TokenType { GO_TEXT, RAW_TEXT, PIPE };
+// Token order must match externals array in grammar.js.
+enum TokenType { GO_TEXT, RAW_TEXT, PIPE, GO_COND_TEXT, GO_INTERP_TEXT };
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
 void tree_sitter_gsx_external_scanner_destroy(void *p) {}
@@ -9,90 +10,220 @@ unsigned tree_sitter_gsx_external_scanner_serialize(void *p, char *b) { return 0
 void tree_sitter_gsx_external_scanner_deserialize(void *p, const char *b, unsigned n) {}
 
 static void advance(TSLexer *l) { l->advance(l, false); }
+static void skip_ws(TSLexer *l) { l->advance(l, true); }
 
 // Returns true if c is an identifier character (a-z, A-Z, 0-9, _).
 static bool is_ident_char(int32_t c) {
   return (c == '_' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'));
 }
 
-// Consume Go source until brace-depth 0 AND the next token would start a `component`
-// declaration at a left word boundary, or EOF. Respects strings/runes/comments/braces.
-// Marks end before the `component` keyword. Returns true if it consumed at least one byte.
-static bool scan_go_text(TSLexer *l) {
-  int depth = 0;
-  bool consumed = false;
-  int32_t prev_c = 0; // last consumed character; 0 means start of input
-  for (;;) {
-    if (l->eof(l)) break;
-    int32_t c = l->lookahead;
+// ─────────────────────────────────────────────────────────────────────────────
+// Scan a go_text / go_cond_text / go_interp_text token.
+//
+// Parameters:
+//   stop_open_brace  — stop at depth-0 '{' (go_cond_text mode).
+//   refuse_keywords  — refuse when content (after optional WS) begins with a
+//                      Go control-flow keyword (if / for / switch).  Only set
+//                      for GO_INTERP_TEXT so that `{ if … }` becomes a
+//                      control_flow node rather than an interpolation.
+//
+// Keyword-refusal with multi-char lookahead:
+//   TSLexer provides only one-char lookahead (l->lookahead).  To detect a
+//   keyword we need to consume up to 6 chars ("switch") speculatively.  We
+//   accumulate them in a local peek[] buffer.
+//
+//   • If a keyword is detected  → return false.  tree-sitter resets the lexer
+//     to the start of this call (discarding all advances); the internal lexer
+//     then matches the keyword for the control_flow rule.
+//
+//   • If no keyword             → the peeked chars are already consumed from
+//     the TSLexer; they cannot be "un-advanced".  We feed them into the main
+//     scan loop via a replay mechanism so they end up in the emitted token.
+//
+// Peek stop conditions: stop peeking at any delimiter that cannot be part of a
+// bare keyword (`{`, `}`, `?`, `<`, whitespace, quotes, `(`, `)`).  This
+// ensures that these chars are never "stuck" in the replay buffer where
+// mark_end semantics become tricky.
+// ─────────────────────────────────────────────────────────────────────────────
 
-    // At depth 0, check for `component` keyword only when preceded by a non-identifier
-    // char (left word boundary). This prevents a suffix like `mycomponent` from matching.
+#define PEEK_BUF_CAP 16
+
+static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords) {
+  // Never start with '<'.
+  if (l->lookahead == '<') return false;
+
+  int32_t peek[PEEK_BUF_CAP];
+  int     peek_len = 0;
+
+  if (refuse_keywords) {
+    // Skip leading whitespace (these become extras on emit, discarded on false).
+    while (l->lookahead == ' '  || l->lookahead == '\t' ||
+           l->lookahead == '\r' || l->lookahead == '\n') {
+      skip_ws(l);
+    }
+    if (l->eof(l)) return false;  // nothing to emit
+
+    // If the first non-whitespace char is '<', this is markup — let it fall
+    // through to the markup alternative in _hole_body.
+    if (l->lookahead == '<') return false;
+
+    // Consume up to PEEK_BUF_CAP chars that cannot be inside a bare keyword.
+    // Stop at delimiters so they stay in the lexer for the main loop.
+    while (!l->eof(l) && peek_len < PEEK_BUF_CAP) {
+      int32_t c = l->lookahead;
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n' ||
+          c == '<' || c == '{' || c == '}' || c == '?' ||
+          c == '(' || c == ')' || c == '"' || c == '\'' || c == '`') {
+        break;
+      }
+      peek[peek_len++] = c;
+      advance(l);
+    }
+
+    // Detect keyword in peek[].
+    bool is_kw = false;
+    if (peek_len >= 2 && peek[0]=='i' && peek[1]=='f' &&
+        (peek_len == 2 || !is_ident_char(peek[2]))) {
+      is_kw = true;
+    } else if (peek_len >= 3 &&
+               peek[0]=='f' && peek[1]=='o' && peek[2]=='r' &&
+               (peek_len == 3 || !is_ident_char(peek[3]))) {
+      is_kw = true;
+    } else if (peek_len >= 6 &&
+               peek[0]=='s' && peek[1]=='w' && peek[2]=='i' &&
+               peek[3]=='t' && peek[4]=='c' && peek[5]=='h' &&
+               (peek_len == 6 || !is_ident_char(peek[6]))) {
+      is_kw = true;
+    }
+    if (is_kw) return false;  // let internal lexer match the keyword
+    // No keyword — replay peek[] in main loop below.
+  }
+
+  // ── Main scan loop ─────────────────────────────────────────────────────────
+  // Replays peek[0..peek_len) before reading directly from the lexer.
+  //
+  // IMPORTANT: after the peek phase the TSLexer position is already PAST the
+  // peeked chars.  mark_end(l) therefore always marks AFTER the peeked region.
+  // Since our peek stop conditions ensure that no special stop-char ({, }, ?)
+  // is ever in peek[], the stop-condition branches in the main loop only fire
+  // for chars read directly from the lexer — at which point mark_end is valid.
+  int     peek_pos  = 0;
+  int     depth     = 0;
+  bool    consumed  = false;
+  int32_t prev_c    = 0;
+
+#define CUR()    (peek_pos < peek_len ? peek[peek_pos] : l->lookahead)
+#define IS_EOF() (peek_pos >= peek_len && l->eof(l))
+#define ADV() do {                            \
+    if (peek_pos < peek_len) { peek_pos++; } \
+    else { advance(l); }                      \
+  } while(0)
+
+  for (;;) {
+    if (IS_EOF()) break;
+    int32_t c = CUR();
+
+    // Detect `component` keyword at depth 0 (needs left word boundary).
     if (depth == 0 && c == 'c' && !is_ident_char(prev_c)) {
-      l->mark_end(l);            // candidate stop point (before `component`)
-      // Try to match the keyword by consuming; if it matches and is followed by a
-      // non-identifier char, stop here (do not include `component`).
+      // mark_end: if still in peek buf, mark_end is already past peeked chars
+      // (the lexer consumed them in the peek phase).  That is fine: if we stop
+      // here the token ends before 'c' which is peeked → the peeked chars
+      // before 'c' were already emitted as part of the token up to mark_end.
+      // Actually: mark_end BEFORE consuming 'c' means token ends just before c.
+      if (peek_pos >= peek_len) l->mark_end(l);
+      // else: mark_end already past peeked region; 'c' is peeked, previous
+      // peeked chars are already implicitly inside the token boundary.
+      // We cannot finely control mark_end inside the peek region, so just
+      // set it now (at the lexer's current position = after all peeked chars).
+      else l->mark_end(l); // same call, just for clarity
+
       const char *kw = "component";
       size_t i = 0;
-      while (kw[i] && (int32_t)kw[i] == l->lookahead) { advance(l); i++; }
-      if (kw[i] == 0) {
-        int32_t after = l->lookahead;
-        if (!is_ident_char(after)) {
-          // `component` keyword found at depth 0: stop BEFORE it (mark_end already set).
-          return consumed;       // go_text ends just before `component`
-        }
+      while (kw[i]) {
+        if (IS_EOF() || (int32_t)(unsigned char)kw[i] != CUR()) break;
+        ADV(); i++;
       }
-      // Not the keyword (or an identifier like `components`): the consumed chars are
-      // part of go_text; continue. (mark_end will be reset by the normal path below.)
-      // Update prev_c to the last char we consumed while scanning the non-keyword.
-      // We consumed chars kw[0..i-1]; the last consumed char is kw[i-1] if i>0,
-      // or 'c' itself (kw[0]) — in either case the last char before lookahead is kw[i-1].
-      prev_c = (i > 0) ? (int32_t)kw[i - 1] : c;
+      if (kw[i] == 0 && !is_ident_char(CUR())) {
+        return consumed;
+      }
+      prev_c = (i > 0) ? (int32_t)(unsigned char)kw[i-1] : c;
       consumed = true;
+      if (peek_pos >= peek_len) l->mark_end(l);
       continue;
     }
 
     switch (c) {
-      case '"': { advance(l); while (!l->eof(l) && l->lookahead!='"') { if (l->lookahead=='\\') advance(l); advance(l);} if(!l->eof(l)) advance(l); break; }
-      case '`': { advance(l); while (!l->eof(l) && l->lookahead!='`') advance(l); if(!l->eof(l)) advance(l); break; }
-      case '\'':{ advance(l); while (!l->eof(l) && l->lookahead!='\'') { if (l->lookahead=='\\') advance(l); advance(l);} if(!l->eof(l)) advance(l); break; }
-      case '/': { advance(l); if (l->lookahead=='/') { while(!l->eof(l)&&l->lookahead!='\n') advance(l);} else if (l->lookahead=='*'){ advance(l); int32_t prev=0; while(!l->eof(l)&&!(prev=='*'&&l->lookahead=='/')){prev=l->lookahead;advance(l);} if(!l->eof(l)) advance(l);} break; }
-      case '{': depth++; advance(l); break;
-      case '?': {
-        if (depth == 0) {
-          // Stop before `?` so the grammar's optional('?') in interpolation /
-          // expr_attribute can match it as a distinct token.  Go has no `?`
-          // operator, so the only depth-0 `?` is a try-marker.  A `?` inside
-          // a string/rune literal is already consumed by the string handlers
-          // above, so this branch is unreachable in that context.
-          l->mark_end(l);
-          return consumed;
+      case '"': {
+        ADV();
+        while (!IS_EOF() && CUR() != '"') { if (CUR()=='\\') ADV(); ADV(); }
+        if (!IS_EOF()) ADV();
+        break;
+      }
+      case '`': {
+        ADV();
+        while (!IS_EOF() && CUR() != '`') ADV();
+        if (!IS_EOF()) ADV();
+        break;
+      }
+      case '\'': {
+        ADV();
+        while (!IS_EOF() && CUR() != '\'') { if (CUR()=='\\') ADV(); ADV(); }
+        if (!IS_EOF()) ADV();
+        break;
+      }
+      case '/': {
+        ADV();
+        if (!IS_EOF()) {
+          if (CUR() == '/') { while (!IS_EOF() && CUR()!='\n') ADV(); }
+          else if (CUR() == '*') {
+            ADV();
+            int32_t pbc = 0;
+            while (!IS_EOF() && !(pbc=='*' && CUR()=='/')) { pbc=CUR(); ADV(); }
+            if (!IS_EOF()) ADV();
+          }
         }
-        advance(l);
+        break;
+      }
+      case '{': {
+        if (stop_open_brace && depth == 0) { l->mark_end(l); return consumed; }
+        depth++; ADV();
+        break;
+      }
+      case '?': {
+        if (depth == 0) { l->mark_end(l); return consumed; }
+        ADV();
         break;
       }
       case '}': {
-        if (depth == 0) {
-          l->mark_end(l);
-          return consumed;
-        }
-        depth--;
-        advance(l);
+        if (depth == 0) { l->mark_end(l); return consumed; }
+        depth--; ADV();
         break;
       }
-      default: advance(l); break;
+      default:
+        ADV();
+        break;
     }
     prev_c = c;
     consumed = true;
-    l->mark_end(l);
+    if (peek_pos >= peek_len) l->mark_end(l);
   }
-  l->mark_end(l);
+  if (peek_pos >= peek_len) l->mark_end(l);
   return consumed;
+
+#undef CUR
+#undef IS_EOF
+#undef ADV
 }
 
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
+  if (valid[GO_COND_TEXT]) {
+    if (scan_go_text_impl(l, true, false)) { l->result_symbol = GO_COND_TEXT; return true; }
+  }
+  if (valid[GO_INTERP_TEXT]) {
+    if (scan_go_text_impl(l, false, true)) { l->result_symbol = GO_INTERP_TEXT; return true; }
+  }
   if (valid[GO_TEXT]) {
-    if (scan_go_text(l)) { l->result_symbol = GO_TEXT; return true; }
+    if (scan_go_text_impl(l, false, false)) { l->result_symbol = GO_TEXT; return true; }
   }
   return false; // RAW_TEXT (Task 8), PIPE (Task 9) added later
 }

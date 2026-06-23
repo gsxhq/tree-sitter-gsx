@@ -25,8 +25,8 @@ component H(x int) {
             (expr_attribute
               (attribute_name)
               (pipeline
-                (go_expr
-                  (go_text)))))
+                (go_interp_expr
+                  (go_interp_text)))))
           (attribute
             (bool_attribute
               (attribute_name)))
@@ -40,12 +40,12 @@ component H(x int) {
               (quoted_string))))
         (interpolation
           (pipeline
-            (go_expr
-              (go_text))))
+            (go_interp_expr
+              (go_interp_text))))
         (interpolation
           (pipeline
-            (go_expr
-              (go_text))))
+            (go_interp_expr
+              (go_interp_text))))
         (end_tag
           (tag_name)))))
   (go_chunk
@@ -71,11 +71,11 @@ component T() {
     body: (body
       (interpolation
         (pipeline
-          (go_expr
-            (go_text))))
+          (go_interp_expr
+            (go_interp_text))))
       (interpolation
         (pipeline
-          (go_expr
-            (go_text))))))
+          (go_interp_expr
+            (go_interp_text))))))
   (go_chunk
     (go_text)))
