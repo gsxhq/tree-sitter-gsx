@@ -5,7 +5,9 @@
       "scope": "source.gsx",
       "file-types": ["gsx"],
       "injection-regex": "^gsx$",
-      "path": "."
+      "path": ".",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm"
     }
   ],
   "metadata": { "version": "0.0.1", "license": "MIT", "description": "tree-sitter grammar for gsx" }
