@@ -52,6 +52,38 @@ component H(x int) {
     (go_text)))
 
 ==================
+markup value in attribute (expr_attribute accepts _hole_body)
+==================
+
+component C(x int) {
+  <Panel header={ <h1>hi</h1> }/>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (element
+                (start_tag
+                  name: (tag_name))
+                (text)
+                (end_tag
+                  (tag_name)))))))))
+  (go_chunk
+    (go_text)))
+
+==================
 try-marker go_text stops before ?
 ==================
 

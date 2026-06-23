@@ -15,3 +15,26 @@ component Foo() {}
     body: (body))
   (go_chunk
     (go_text)))
+
+==================
+parameter list with func type (nested parens in _paren_go)
+==================
+
+component C(href func(int) string) {
+  <div/>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (self_closing_element
+          name: (tag_name)))))
+  (go_chunk
+    (go_text)))

@@ -22,7 +22,9 @@ module.exports = grammar({
     ),
     receiver: $ => seq('(', optional($._paren_go), ')'),
     parameter_list: $ => seq('(', optional($._paren_go), ')'),
-    _paren_go: $ => token(prec(-1, /[^()]+/)),
+    // Matches parameter/receiver content with one level of nested parens
+    // (covers func types like `href func(int) string`, pointer receivers, etc.)
+    _paren_go: $ => token(prec(-1, /([^()]*\([^()]*\))*[^()]*/)),
 
     body: $ => seq('{', repeat($._node), '}'),
     _node: $ => choice(
@@ -98,7 +100,9 @@ module.exports = grammar({
       $.conditional_attribute,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
-    expr_attribute: $ => seq($.attribute_name, '=', '{', $.pipeline, optional('?'), '}'),
+    // Attribute value can be a Go expression (pipeline) OR markup nodes.
+    // e.g. header={ <h1>text</h1> } or value={ expr }.
+    expr_attribute: $ => seq($.attribute_name, '=', '{', $._hole_body, optional('?'), '}'),
     bool_attribute: $ => prec(-1, $.attribute_name),
     spread_attribute: $ => seq('{', '...', $.go_expr, '}'),
     conditional_attribute: $ => seq(

@@ -382,7 +382,47 @@
           "named": true
         },
         {
+          "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "doctype",
+          "named": true
+        },
+        {
+          "type": "element",
+          "named": true
+        },
+        {
+          "type": "fragment",
+          "named": true
+        },
+        {
+          "type": "go_block",
+          "named": true
+        },
+        {
+          "type": "html_comment",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
           "type": "pipeline",
+          "named": true
+        },
+        {
+          "type": "raw_element",
+          "named": true
+        },
+        {
+          "type": "text",
           "named": true
         }
       ]
