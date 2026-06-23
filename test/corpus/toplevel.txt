@@ -18,3 +18,45 @@ component Foo() {}
     (body))
   (go_chunk
     (go_text)))
+
+==================
+identifier ending in component is not a keyword
+==================
+
+var mycomponent = 1
+
+component X() {}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    (body))
+  (go_chunk
+    (go_text)))
+
+==================
+two adjacent components
+==================
+
+component A() {}
+component B() {}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    (body))
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    (body))
+  (go_chunk
+    (go_text)))
