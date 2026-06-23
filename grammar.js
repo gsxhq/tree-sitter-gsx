@@ -77,8 +77,9 @@ module.exports = grammar({
     ),
     block: $ => seq('{', repeat($._node), '}'),
     else_clause: $ => seq(
-      alias(/else/, $.keyword),
-      choice($.block, $.control_flow),
+      alias('else', $.keyword),
+      optional(seq(alias('if', $.keyword), $.go_cond_text)),
+      $.block,
     ),
 
     // Attributes (including conditional_attribute)

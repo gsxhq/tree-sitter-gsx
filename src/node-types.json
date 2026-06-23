@@ -317,7 +317,7 @@
           "named": true
         },
         {
-          "type": "control_flow",
+          "type": "go_cond_text",
           "named": true
         },
         {

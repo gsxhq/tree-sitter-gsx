@@ -49,9 +49,6 @@ static bool is_ident_char(int32_t c) {
 #define PEEK_BUF_CAP 16
 
 static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords) {
-  // Never start with '<'.
-  if (l->lookahead == '<') return false;
-
   int32_t peek[PEEK_BUF_CAP];
   int     peek_len = 0;
 
@@ -63,9 +60,26 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     }
     if (l->eof(l)) return false;  // nothing to emit
 
-    // If the first non-whitespace char is '<', this is markup — let it fall
-    // through to the markup alternative in _hole_body.
-    if (l->lookahead == '<') return false;
+    // If the first non-whitespace char is '<', check if it's markup:
+    //   - '<' followed by a letter → tag start like <div
+    //   - '<' followed by '>'      → fragment <>
+    // In those cases, refuse so the markup alternative in _hole_body wins.
+    // But '<' followed by '-' (channel receive <-ch) or anything else is
+    // valid Go and should be scanned normally.
+    if (l->lookahead == '<') {
+      advance(l);  // consume '<' speculatively
+      int32_t next = l->lookahead;
+      bool is_markup = (next == '>' ||
+                        (next >= 'A' && next <= 'Z') ||
+                        (next >= 'a' && next <= 'z'));
+      if (is_markup) return false;
+      // Not markup — replay '<' plus next char via peek buffer.
+      peek[peek_len++] = '<';
+      if (!l->eof(l)) {
+        peek[peek_len++] = next;
+        advance(l);
+      }
+    }
 
     // Consume up to PEEK_BUF_CAP chars that cannot be inside a bare keyword.
     // Stop at delimiters so they stay in the lexer for the main loop.

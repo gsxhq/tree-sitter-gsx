@@ -536,7 +536,7 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "PATTERN",
+            "type": "STRING",
             "value": "else"
           },
           "named": true,
@@ -546,14 +546,31 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "block"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "if"
+                  },
+                  "named": true,
+                  "value": "keyword"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "go_cond_text"
+                }
+              ]
             },
             {
-              "type": "SYMBOL",
-              "name": "control_flow"
+              "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "block"
         }
       ]
     },

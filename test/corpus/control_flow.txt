@@ -176,3 +176,86 @@ component F() { <div { if c { class="x" } }></div> }
           (tag_name)))))
   (go_chunk
     (go_text)))
+
+==================
+channel receive in interpolation
+==================
+
+component F() { { <-ch } }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (interpolation
+        (pipeline
+          (go_interp_expr
+            (go_interp_text))))))
+  (go_chunk
+    (go_text)))
+
+==================
+channel receive assignment in interpolation
+==================
+
+component F() { { y := <-ch } }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (interpolation
+        (pipeline
+          (go_interp_expr
+            (go_interp_text))))))
+  (go_chunk
+    (go_text)))
+
+==================
+else if flat form
+==================
+
+component F() { { if c { <a/> } else if d { <b/> } else { <c/> } } }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (control_flow
+        (keyword)
+        (go_cond_text)
+        (block
+          (element
+            (self_closing_element
+              name: (tag_name))))
+        (else_clause
+          (keyword)
+          (keyword)
+          (go_cond_text)
+          (block
+            (element
+              (self_closing_element
+                name: (tag_name)))))
+        (else_clause
+          (keyword)
+          (block
+            (element
+              (self_closing_element
+                name: (tag_name))))))))
+  (go_chunk
+    (go_text)))
