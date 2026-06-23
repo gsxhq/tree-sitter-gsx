@@ -7,12 +7,12 @@
 #endif
 
 #define LANGUAGE_VERSION 15
-#define STATE_COUNT 12
+#define STATE_COUNT 13
 #define LARGE_STATE_COUNT 2
-#define SYMBOL_COUNT 14
+#define SYMBOL_COUNT 18
 #define ALIAS_COUNT 0
-#define TOKEN_COUNT 9
-#define EXTERNAL_TOKEN_COUNT 0
+#define TOKEN_COUNT 12
+#define EXTERNAL_TOKEN_COUNT 3
 #define FIELD_COUNT 1
 #define MAX_ALIAS_SEQUENCE_LENGTH 5
 #define MAX_RESERVED_WORD_SET_SIZE 0
@@ -28,11 +28,15 @@ enum ts_symbol_identifiers {
   sym_identifier = 6,
   sym_line_comment = 7,
   sym_block_comment = 8,
-  sym_source_file = 9,
-  sym__top_level = 10,
-  sym_component_declaration = 11,
-  sym_body = 12,
-  aux_sym_source_file_repeat1 = 13,
+  sym_go_text = 9,
+  sym_raw_text = 10,
+  sym_pipe = 11,
+  sym_source_file = 12,
+  sym__top_level = 13,
+  sym_go_chunk = 14,
+  sym_component_declaration = 15,
+  sym_body = 16,
+  aux_sym_source_file_repeat1 = 17,
 };
 
 static const char * const ts_symbol_names[] = {
@@ -45,8 +49,12 @@ static const char * const ts_symbol_names[] = {
   [sym_identifier] = "identifier",
   [sym_line_comment] = "line_comment",
   [sym_block_comment] = "block_comment",
+  [sym_go_text] = "go_text",
+  [sym_raw_text] = "raw_text",
+  [sym_pipe] = "pipe",
   [sym_source_file] = "source_file",
   [sym__top_level] = "_top_level",
+  [sym_go_chunk] = "go_chunk",
   [sym_component_declaration] = "component_declaration",
   [sym_body] = "body",
   [aux_sym_source_file_repeat1] = "source_file_repeat1",
@@ -62,8 +70,12 @@ static const TSSymbol ts_symbol_map[] = {
   [sym_identifier] = sym_identifier,
   [sym_line_comment] = sym_line_comment,
   [sym_block_comment] = sym_block_comment,
+  [sym_go_text] = sym_go_text,
+  [sym_raw_text] = sym_raw_text,
+  [sym_pipe] = sym_pipe,
   [sym_source_file] = sym_source_file,
   [sym__top_level] = sym__top_level,
+  [sym_go_chunk] = sym_go_chunk,
   [sym_component_declaration] = sym_component_declaration,
   [sym_body] = sym_body,
   [aux_sym_source_file_repeat1] = aux_sym_source_file_repeat1,
@@ -106,12 +118,28 @@ static const TSSymbolMetadata ts_symbol_metadata[] = {
     .visible = true,
     .named = true,
   },
+  [sym_go_text] = {
+    .visible = true,
+    .named = true,
+  },
+  [sym_raw_text] = {
+    .visible = true,
+    .named = true,
+  },
+  [sym_pipe] = {
+    .visible = true,
+    .named = true,
+  },
   [sym_source_file] = {
     .visible = true,
     .named = true,
   },
   [sym__top_level] = {
     .visible = false,
+    .named = true,
+  },
+  [sym_go_chunk] = {
+    .visible = true,
     .named = true,
   },
   [sym_component_declaration] = {
@@ -167,6 +195,7 @@ static const TSStateId ts_primary_state_ids[STATE_COUNT] = {
   [9] = 9,
   [10] = 10,
   [11] = 11,
+  [12] = 12,
 };
 
 static bool ts_lex(TSLexer *lexer, TSStateId state) {
@@ -268,18 +297,19 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
 }
 
 static const TSLexerMode ts_lex_modes[STATE_COUNT] = {
-  [0] = {.lex_state = 0},
-  [1] = {.lex_state = 0},
-  [2] = {.lex_state = 0},
-  [3] = {.lex_state = 0},
-  [4] = {.lex_state = 0},
-  [5] = {.lex_state = 0},
-  [6] = {.lex_state = 0},
-  [7] = {.lex_state = 4},
-  [8] = {.lex_state = 0},
+  [0] = {.lex_state = 0, .external_lex_state = 1},
+  [1] = {.lex_state = 0, .external_lex_state = 2},
+  [2] = {.lex_state = 0, .external_lex_state = 2},
+  [3] = {.lex_state = 0, .external_lex_state = 2},
+  [4] = {.lex_state = 0, .external_lex_state = 2},
+  [5] = {.lex_state = 0, .external_lex_state = 2},
+  [6] = {.lex_state = 0, .external_lex_state = 2},
+  [7] = {.lex_state = 0},
+  [8] = {.lex_state = 4},
   [9] = {.lex_state = 0},
   [10] = {.lex_state = 0},
   [11] = {.lex_state = 0},
+  [12] = {.lex_state = 0},
 };
 
 static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
@@ -292,92 +322,113 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [anon_sym_RBRACE] = ACTIONS(1),
     [sym_line_comment] = ACTIONS(3),
     [sym_block_comment] = ACTIONS(3),
+    [sym_go_text] = ACTIONS(1),
+    [sym_raw_text] = ACTIONS(1),
+    [sym_pipe] = ACTIONS(1),
   },
   [STATE(1)] = {
-    [sym_source_file] = STATE(8),
+    [sym_source_file] = STATE(9),
     [sym__top_level] = STATE(2),
+    [sym_go_chunk] = STATE(2),
     [sym_component_declaration] = STATE(2),
     [aux_sym_source_file_repeat1] = STATE(2),
     [ts_builtin_sym_end] = ACTIONS(5),
     [anon_sym_component] = ACTIONS(7),
     [sym_line_comment] = ACTIONS(3),
     [sym_block_comment] = ACTIONS(3),
+    [sym_go_text] = ACTIONS(9),
   },
 };
 
 static const uint16_t ts_small_parse_table[] = {
-  [0] = 4,
+  [0] = 5,
     ACTIONS(7), 1,
       anon_sym_component,
     ACTIONS(9), 1,
-      ts_builtin_sym_end,
-    ACTIONS(3), 2,
-      sym_line_comment,
-      sym_block_comment,
-    STATE(3), 3,
-      sym__top_level,
-      sym_component_declaration,
-      aux_sym_source_file_repeat1,
-  [16] = 4,
+      sym_go_text,
     ACTIONS(11), 1,
       ts_builtin_sym_end,
-    ACTIONS(13), 1,
-      anon_sym_component,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-    STATE(3), 3,
+    STATE(3), 4,
       sym__top_level,
+      sym_go_chunk,
       sym_component_declaration,
       aux_sym_source_file_repeat1,
-  [32] = 3,
-    ACTIONS(16), 1,
+  [20] = 5,
+    ACTIONS(13), 1,
+      ts_builtin_sym_end,
+    ACTIONS(15), 1,
+      anon_sym_component,
+    ACTIONS(18), 1,
+      sym_go_text,
+    ACTIONS(3), 2,
+      sym_line_comment,
+      sym_block_comment,
+    STATE(3), 4,
+      sym__top_level,
+      sym_go_chunk,
+      sym_component_declaration,
+      aux_sym_source_file_repeat1,
+  [40] = 2,
+    ACTIONS(3), 2,
+      sym_line_comment,
+      sym_block_comment,
+    ACTIONS(21), 3,
+      sym_go_text,
+      ts_builtin_sym_end,
+      anon_sym_component,
+  [50] = 2,
+    ACTIONS(3), 2,
+      sym_line_comment,
+      sym_block_comment,
+    ACTIONS(23), 3,
+      sym_go_text,
+      ts_builtin_sym_end,
+      anon_sym_component,
+  [60] = 2,
+    ACTIONS(3), 2,
+      sym_line_comment,
+      sym_block_comment,
+    ACTIONS(25), 3,
+      sym_go_text,
+      ts_builtin_sym_end,
+      anon_sym_component,
+  [70] = 3,
+    ACTIONS(27), 1,
       anon_sym_LBRACE,
     STATE(5), 1,
       sym_body,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-  [43] = 2,
-    ACTIONS(3), 2,
-      sym_line_comment,
-      sym_block_comment,
-    ACTIONS(18), 2,
-      ts_builtin_sym_end,
-      anon_sym_component,
-  [52] = 2,
-    ACTIONS(3), 2,
-      sym_line_comment,
-      sym_block_comment,
-    ACTIONS(20), 2,
-      ts_builtin_sym_end,
-      anon_sym_component,
-  [61] = 2,
-    ACTIONS(22), 1,
+  [81] = 2,
+    ACTIONS(29), 1,
       sym_identifier,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-  [69] = 2,
-    ACTIONS(24), 1,
+  [89] = 2,
+    ACTIONS(31), 1,
       ts_builtin_sym_end,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-  [77] = 2,
-    ACTIONS(26), 1,
+  [97] = 2,
+    ACTIONS(33), 1,
       anon_sym_LPAREN,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-  [85] = 2,
-    ACTIONS(28), 1,
+  [105] = 2,
+    ACTIONS(35), 1,
       anon_sym_RPAREN,
     ACTIONS(3), 2,
       sym_line_comment,
       sym_block_comment,
-  [93] = 2,
-    ACTIONS(30), 1,
+  [113] = 2,
+    ACTIONS(37), 1,
       anon_sym_RBRACE,
     ACTIONS(3), 2,
       sym_line_comment,
@@ -386,15 +437,16 @@ static const uint16_t ts_small_parse_table[] = {
 
 static const uint32_t ts_small_parse_table_map[] = {
   [SMALL_STATE(2)] = 0,
-  [SMALL_STATE(3)] = 16,
-  [SMALL_STATE(4)] = 32,
-  [SMALL_STATE(5)] = 43,
-  [SMALL_STATE(6)] = 52,
-  [SMALL_STATE(7)] = 61,
-  [SMALL_STATE(8)] = 69,
-  [SMALL_STATE(9)] = 77,
-  [SMALL_STATE(10)] = 85,
-  [SMALL_STATE(11)] = 93,
+  [SMALL_STATE(3)] = 20,
+  [SMALL_STATE(4)] = 40,
+  [SMALL_STATE(5)] = 50,
+  [SMALL_STATE(6)] = 60,
+  [SMALL_STATE(7)] = 70,
+  [SMALL_STATE(8)] = 81,
+  [SMALL_STATE(9)] = 89,
+  [SMALL_STATE(10)] = 97,
+  [SMALL_STATE(11)] = 105,
+  [SMALL_STATE(12)] = 113,
 };
 
 static const TSParseActionEntry ts_parse_actions[] = {
@@ -402,23 +454,55 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [1] = {.entry = {.count = 1, .reusable = false}}, RECOVER(),
   [3] = {.entry = {.count = 1, .reusable = true}}, SHIFT_EXTRA(),
   [5] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_source_file, 0, 0, 0),
-  [7] = {.entry = {.count = 1, .reusable = true}}, SHIFT(7),
-  [9] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_source_file, 1, 0, 0),
-  [11] = {.entry = {.count = 1, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0),
-  [13] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(7),
-  [16] = {.entry = {.count = 1, .reusable = true}}, SHIFT(11),
-  [18] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_component_declaration, 5, 0, 1),
-  [20] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_body, 2, 0, 0),
-  [22] = {.entry = {.count = 1, .reusable = true}}, SHIFT(9),
-  [24] = {.entry = {.count = 1, .reusable = true}},  ACCEPT_INPUT(),
-  [26] = {.entry = {.count = 1, .reusable = true}}, SHIFT(10),
-  [28] = {.entry = {.count = 1, .reusable = true}}, SHIFT(4),
-  [30] = {.entry = {.count = 1, .reusable = true}}, SHIFT(6),
+  [7] = {.entry = {.count = 1, .reusable = true}}, SHIFT(8),
+  [9] = {.entry = {.count = 1, .reusable = true}}, SHIFT(4),
+  [11] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_source_file, 1, 0, 0),
+  [13] = {.entry = {.count = 1, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0),
+  [15] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(8),
+  [18] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(4),
+  [21] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_go_chunk, 1, 0, 0),
+  [23] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_component_declaration, 5, 0, 1),
+  [25] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_body, 2, 0, 0),
+  [27] = {.entry = {.count = 1, .reusable = true}}, SHIFT(12),
+  [29] = {.entry = {.count = 1, .reusable = true}}, SHIFT(10),
+  [31] = {.entry = {.count = 1, .reusable = true}},  ACCEPT_INPUT(),
+  [33] = {.entry = {.count = 1, .reusable = true}}, SHIFT(11),
+  [35] = {.entry = {.count = 1, .reusable = true}}, SHIFT(7),
+  [37] = {.entry = {.count = 1, .reusable = true}}, SHIFT(6),
+};
+
+enum ts_external_scanner_symbol_identifiers {
+  ts_external_token_go_text = 0,
+  ts_external_token_raw_text = 1,
+  ts_external_token_pipe = 2,
+};
+
+static const TSSymbol ts_external_scanner_symbol_map[EXTERNAL_TOKEN_COUNT] = {
+  [ts_external_token_go_text] = sym_go_text,
+  [ts_external_token_raw_text] = sym_raw_text,
+  [ts_external_token_pipe] = sym_pipe,
+};
+
+static const bool ts_external_scanner_states[3][EXTERNAL_TOKEN_COUNT] = {
+  [1] = {
+    [ts_external_token_go_text] = true,
+    [ts_external_token_raw_text] = true,
+    [ts_external_token_pipe] = true,
+  },
+  [2] = {
+    [ts_external_token_go_text] = true,
+  },
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+void *tree_sitter_gsx_external_scanner_create(void);
+void tree_sitter_gsx_external_scanner_destroy(void *);
+bool tree_sitter_gsx_external_scanner_scan(void *, TSLexer *, const bool *);
+unsigned tree_sitter_gsx_external_scanner_serialize(void *, char *);
+void tree_sitter_gsx_external_scanner_deserialize(void *, const char *, unsigned);
+
 #ifdef TREE_SITTER_HIDE_SYMBOLS
 #define TS_PUBLIC
 #elif defined(_WIN32)
@@ -454,6 +538,15 @@ TS_PUBLIC const TSLanguage *tree_sitter_gsx(void) {
     .alias_sequences = &ts_alias_sequences[0][0],
     .lex_modes = (const void*)ts_lex_modes,
     .lex_fn = ts_lex,
+    .external_scanner = {
+      &ts_external_scanner_states[0][0],
+      ts_external_scanner_symbol_map,
+      tree_sitter_gsx_external_scanner_create,
+      tree_sitter_gsx_external_scanner_destroy,
+      tree_sitter_gsx_external_scanner_scan,
+      tree_sitter_gsx_external_scanner_serialize,
+      tree_sitter_gsx_external_scanner_deserialize,
+    },
     .primary_state_ids = ts_primary_state_ids,
     .name = "gsx",
     .max_reserved_word_set_size = 0,

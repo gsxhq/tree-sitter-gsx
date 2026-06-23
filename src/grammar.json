@@ -10,8 +10,21 @@
       }
     },
     "_top_level": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "component_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "go_chunk"
+        }
+      ]
+    },
+    "go_chunk": {
       "type": "SYMBOL",
-      "name": "component_declaration"
+      "name": "go_text"
     },
     "component_declaration": {
       "type": "SEQ",
@@ -112,7 +125,20 @@
   ],
   "conflicts": [],
   "precedences": [],
-  "externals": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "go_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "raw_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "pipe"
+    }
+  ],
   "inline": [],
   "supertypes": [],
   "reserved": {}

@@ -1,11 +1,12 @@
 module.exports = grammar({
   name: 'gsx',
+  externals: $ => [$.go_text, $.raw_text, $.pipe],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
-    _top_level: $ => $.component_declaration,
+    _top_level: $ => choice($.component_declaration, $.go_chunk),
+    go_chunk: $ => $.go_text,
 
-    // Placeholder until Task 2 wires the scanner: a component with an empty body.
     component_declaration: $ => seq(
       'component', field('name', $.identifier), '(', ')', $.body,
     ),

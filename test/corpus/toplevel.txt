@@ -1,6 +1,10 @@
 ==================
-empty component
+package, import, then component
 ==================
+
+package views
+
+import "github.com/gsxhq/gsx"
 
 component Foo() {}
 

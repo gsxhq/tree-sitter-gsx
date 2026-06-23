@@ -31,6 +31,21 @@
     }
   },
   {
+    "type": "go_chunk",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "source_file",
     "named": true,
     "root": true,
@@ -41,6 +56,10 @@
       "types": [
         {
           "type": "component_declaration",
+          "named": true
+        },
+        {
+          "type": "go_chunk",
           "named": true
         }
       ]
@@ -62,6 +81,10 @@
   {
     "type": "component",
     "named": false
+  },
+  {
+    "type": "go_text",
+    "named": true
   },
   {
     "type": "identifier",
