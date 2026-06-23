@@ -19,7 +19,12 @@ module.exports = grammar({
     _paren_go: $ => token(prec(-1, /[^()]+/)),
 
     body: $ => seq('{', repeat($._node), '}'),
-    _node: $ => choice($.element, $.text),
+    _node: $ => choice($.element, $.fragment, $.doctype, $.html_comment, $.content_comment, $.text),
+
+    fragment: $ => seq('<>', repeat($._node), '</>'),
+    doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
+    html_comment: $ => seq('<!--', /([^-]|-[^-]|--[^>])*/, '-->'),
+    content_comment: $ => seq('{/*', /([^*]|\*[^/])*/, '*/}'),
 
     element: $ => choice(
       $.self_closing_element,

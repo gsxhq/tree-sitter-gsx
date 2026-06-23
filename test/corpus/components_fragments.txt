@@ -1,0 +1,36 @@
+==================
+component tags, fragment, doctype, comments
+==================
+
+component C() {
+  <>
+    <!DOCTYPE html>
+    <!-- hi -->
+    <Card>{/* slot */}</Card>
+    <ui.Button/>
+  </>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (fragment
+        (doctype)
+        (html_comment)
+        (element
+          (start_tag
+            name: (tag_name))
+          (content_comment)
+          (end_tag
+            (tag_name)))
+        (element
+          (self_closing_element
+            name: (tag_name))))))
+  (go_chunk
+    (go_text)))
