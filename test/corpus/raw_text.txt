@@ -31,3 +31,33 @@ component X() { <style>.a{color:red}</style> }
     body: (body
       (raw_element name: (tag_name) (raw_text) (tag_name))))
   (go_chunk (go_text)))
+
+==================
+script body containing </div> in a string literal
+==================
+
+component X() { <script>var s = "</div>";</script> }
+
+---
+
+(source_file
+  (go_chunk (go_text))
+  (component_declaration name: (identifier) parameters: (parameter_list)
+    body: (body
+      (raw_element name: (tag_name) (raw_text) (tag_name))))
+  (go_chunk (go_text)))
+
+==================
+style body containing </b inside a comment
+==================
+
+component X() { <style>/* a</b */ .x{color:red}</style> }
+
+---
+
+(source_file
+  (go_chunk (go_text))
+  (component_declaration name: (identifier) parameters: (parameter_list)
+    body: (body
+      (raw_element name: (tag_name) (raw_text) (tag_name))))
+  (go_chunk (go_text)))

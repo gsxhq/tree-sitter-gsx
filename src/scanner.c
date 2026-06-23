@@ -271,14 +271,80 @@ static bool scan_pipe(TSLexer *l) {
   return true;
 }
 
+// Peek up to `maxn` chars from the lexer into buf[], stopping early if a '<'
+// is encountered (so the main loop can re-check it as a potential close tag).
+// Returns the number of chars placed in buf[].  All chars placed are already
+// advanced past in the lexer.
+static int peek_raw(TSLexer *l, int32_t *buf, int maxn) {
+  int n = 0;
+  while (!l->eof(l) && n < maxn) {
+    int32_t c = l->lookahead;
+    if (c == '<') break; // stop before '<' so main loop can handle it
+    buf[n++] = c;
+    advance(l);
+  }
+  return n;
+}
+
+// Case-insensitive ASCII match: does buf[0..len) start with the NUL-terminated
+// string tag, followed by a non-ident char (or end of buffer)?
+static bool matches_close_tag(const int32_t *buf, int len, const char *tag) {
+  int j = 0;
+  while (tag[j]) {
+    if (j >= len) return false;
+    int32_t c = buf[j];
+    if (c >= 'A' && c <= 'Z') c += 32; // tolower
+    if (c != (int32_t)(unsigned char)tag[j]) return false;
+    j++;
+  }
+  // must be followed by non-ident char or end of buffer
+  if (j < len && is_ident_char(buf[j])) return false;
+  return true;
+}
+
 static bool scan_raw_text(TSLexer *l) {
   bool consumed = false;
   while (!l->eof(l)) {
-    if (l->lookahead == '@') { l->mark_end(l); advance(l); if (l->lookahead=='{') return consumed; consumed=true; continue; }
-    if (l->lookahead == '<') { l->mark_end(l); advance(l); if (l->lookahead=='/') return consumed; consumed=true; continue; }
-    advance(l); consumed = true; l->mark_end(l);
+    if (l->lookahead == '@') {
+      l->mark_end(l);
+      advance(l);
+      if (l->lookahead == '{') return consumed;
+      consumed = true;
+      continue;
+    }
+    if (l->lookahead == '<') {
+      // Mark end BEFORE '<' — if we stop here raw_text ends before '<'.
+      l->mark_end(l);
+      advance(l); // consume '<'
+      if (l->lookahead != '/') {
+        // Plain '<' (not followed by '/') — include it and keep going.
+        consumed = true;
+        continue;
+      }
+      // We see '</'. Peek the tag name chars (up to 7), stopping at '<'.
+      advance(l); // consume '/'
+      int32_t peek[7];
+      int peek_len = peek_raw(l, peek, 7);
+      // Check for </script or </style (case-insensitive).
+      if (matches_close_tag(peek, peek_len, "script") ||
+          matches_close_tag(peek, peek_len, "style")) {
+        // Terminate raw_text BEFORE the '<' (mark_end was set there).
+        return consumed;
+      }
+      // Not a matching close tag: '</', and the peeked chars are all raw content.
+      // mark_end is currently before '<'; advance it past everything consumed.
+      consumed = true;
+      l->mark_end(l);
+      // The main loop continues from wherever the lexer now sits (after peek_raw
+      // stopped — either EOF, a '<', or 7 chars consumed).
+      continue;
+    }
+    advance(l);
+    consumed = true;
+    l->mark_end(l);
   }
-  l->mark_end(l); return consumed;
+  l->mark_end(l);
+  return consumed;
 }
 
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
