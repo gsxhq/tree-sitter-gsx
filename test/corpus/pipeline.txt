@@ -131,3 +131,99 @@ component P() {
           (tag_name)))))
   (go_chunk
     (go_text)))
+
+==================
+pipeline: |> inside parens does not split (2 segments)
+==================
+
+component P() {
+  <a>{ a |> b(c |> d) }</a>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text))
+            (pipe)
+            (go_interp_expr
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+pipeline: |> inside brackets does not split (2 segments)
+==================
+
+component P() {
+  <a>{ x |> y[0 |> z] }</a>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text))
+            (pipe)
+            (go_interp_expr
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+pipeline: peek-boundary |> splits correctly (2 segments)
+==================
+
+component P() {
+  <a>{ aaaaaaaaaaaaaaa|>b }</a>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text))
+            (pipe)
+            (go_interp_expr
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))

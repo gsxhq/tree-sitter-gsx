@@ -83,11 +83,14 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
 
     // Consume up to PEEK_BUF_CAP chars that cannot be inside a bare keyword.
     // Stop at delimiters so they stay in the lexer for the main loop.
+    // NOTE: '|' is excluded from the peek buffer so that |> detection always
+    // happens from the live lexer (where mark_end can correctly point before '|').
     while (!l->eof(l) && peek_len < PEEK_BUF_CAP) {
       int32_t c = l->lookahead;
       if (c == ' ' || c == '\t' || c == '\r' || c == '\n' ||
           c == '<' || c == '{' || c == '}' || c == '?' ||
-          c == '(' || c == ')' || c == '"' || c == '\'' || c == '`') {
+          c == '(' || c == ')' || c == '"' || c == '\'' || c == '`' ||
+          c == '|') {
         break;
       }
       peek[peek_len++] = c;
@@ -121,8 +124,9 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
   // Since our peek stop conditions ensure that no special stop-char ({, }, ?)
   // is ever in peek[], the stop-condition branches in the main loop only fire
   // for chars read directly from the lexer — at which point mark_end is valid.
-  int     peek_pos  = 0;
-  int     depth     = 0;
+  int     peek_pos    = 0;
+  int     depth       = 0;   // brace depth
+  int     paren_depth = 0;   // paren and bracket depth — gates |> splitting
   bool    consumed  = false;
   int32_t prev_c    = 0;
 
@@ -204,30 +208,31 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
         break;
       }
       case '|': {
-        // stop_pipe is for go_text and go_interp_text at depth 0 before |>
-        // so the PIPE token can match. Only check at depth 0.
-        if (depth == 0) {
-          // peek at next char to see if it's >
-          if (peek_pos < peek_len) {
-            // peeked chars; check next peeked char
-            if ((peek_pos + 1) < peek_len && peek[peek_pos + 1] == '>') {
-              l->mark_end(l); return consumed;
-            }
-            // else just a bare | in peek buf — fall through to default
-          } else {
-            // reading from lexer
-            l->mark_end(l);
-            advance(l); // consume '|' speculatively
-            if (l->lookahead == '>') {
-              // it's a |> pipe — stop BEFORE it (don't consume)
-              return consumed;
-            }
-            // not |> — it was just '|', include it in the token
-            consumed = true;
-            l->mark_end(l);
-            continue;
+        // stop at a top-level |> so the PIPE token can match.
+        // "top-level" means outside all braces, parens, and brackets.
+        // '|' is excluded from the peek buffer (see peek-fill stop conditions),
+        // so this case always fires from the live lexer (peek_pos >= peek_len).
+        if (depth == 0 && paren_depth == 0) {
+          l->mark_end(l);
+          advance(l); // consume '|' speculatively
+          if (l->lookahead == '>') {
+            // it's a |> pipe — stop BEFORE it (mark_end set before '|')
+            return consumed;
           }
+          // not |> — just a bare '|', include it in the token
+          consumed = true;
+          l->mark_end(l);
+          continue;
         }
+        ADV();
+        break;
+      }
+      case '(': case '[': {
+        paren_depth++; ADV();
+        break;
+      }
+      case ')': case ']': {
+        if (paren_depth > 0) paren_depth--;
         ADV();
         break;
       }
