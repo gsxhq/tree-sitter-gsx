@@ -1,0 +1,52 @@
+==================
+holes, try-marker, expr/bool/spread/conditional attributes
+==================
+
+component H(x int) {
+  <div id={x} hidden {...attrs} class="c">
+    {title}
+    {user.Name?}
+  </div>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (pipeline
+                (go_expr
+                  (go_text)))))
+          (attribute
+            (bool_attribute
+              (attribute_name)))
+          (attribute
+            (spread_attribute
+              (go_expr
+                (go_text))))
+          (attribute
+            (static_attribute
+              (attribute_name)
+              (quoted_string))))
+        (interpolation
+          (pipeline
+            (go_expr
+              (go_text))))
+        (interpolation
+          (pipeline
+            (go_expr
+              (go_text))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))

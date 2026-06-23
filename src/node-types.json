@@ -4,15 +4,27 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "attribute_name",
+          "type": "bool_attribute",
           "named": true
         },
         {
-          "type": "quoted_string",
+          "type": "conditional_attribute",
+          "named": true
+        },
+        {
+          "type": "expr_attribute",
+          "named": true
+        },
+        {
+          "type": "spread_attribute",
+          "named": true
+        },
+        {
+          "type": "static_attribute",
           "named": true
         }
       ]
@@ -31,6 +43,10 @@
           "named": true
         },
         {
+          "type": "control_flow",
+          "named": true
+        },
+        {
           "type": "doctype",
           "named": true
         },
@@ -43,11 +59,34 @@
           "named": true
         },
         {
+          "type": "go_block",
+          "named": true
+        },
+        {
           "type": "html_comment",
           "named": true
         },
         {
+          "type": "interpolation",
+          "named": true
+        },
+        {
           "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "bool_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_name",
           "named": true
         }
       ]
@@ -100,9 +139,47 @@
     }
   },
   {
+    "type": "conditional_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "go_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "content_comment",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "control_flow",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "go_expr",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "doctype",
@@ -122,6 +199,10 @@
           "named": true
         },
         {
+          "type": "control_flow",
+          "named": true
+        },
+        {
           "type": "doctype",
           "named": true
         },
@@ -138,7 +219,15 @@
           "named": true
         },
         {
+          "type": "go_block",
+          "named": true
+        },
+        {
           "type": "html_comment",
+          "named": true
+        },
+        {
+          "type": "interpolation",
           "named": true
         },
         {
@@ -172,6 +261,25 @@
     }
   },
   {
+    "type": "expr_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_name",
+          "named": true
+        },
+        {
+          "type": "pipeline",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "fragment",
     "named": true,
     "fields": {},
@@ -181,6 +289,10 @@
       "types": [
         {
           "type": "content_comment",
+          "named": true
+        },
+        {
+          "type": "control_flow",
           "named": true
         },
         {
@@ -196,11 +308,34 @@
           "named": true
         },
         {
+          "type": "go_block",
+          "named": true
+        },
+        {
           "type": "html_comment",
           "named": true
         },
         {
+          "type": "interpolation",
+          "named": true
+        },
+        {
           "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "go_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_text",
           "named": true
         }
       ]
@@ -222,14 +357,63 @@
     }
   },
   {
+    "type": "go_expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "html_comment",
     "named": true,
     "fields": {}
   },
   {
+    "type": "interpolation",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "pipeline",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "parameter_list",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "pipeline",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "go_expr",
+          "named": true
+        },
+        {
+          "type": "pipe",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "quoted_string",
@@ -288,6 +472,21 @@
     }
   },
   {
+    "type": "spread_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "start_tag",
     "named": true,
     "fields": {
@@ -308,6 +507,25 @@
       "types": [
         {
           "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "static_attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_name",
+          "named": true
+        },
+        {
+          "type": "quoted_string",
           "named": true
         }
       ]
@@ -335,6 +553,10 @@
   },
   {
     "type": "-->",
+    "named": false
+  },
+  {
+    "type": "...",
     "named": false
   },
   {
@@ -374,6 +596,10 @@
     "named": false
   },
   {
+    "type": "?",
+    "named": false
+  },
+  {
     "type": "attribute_name",
     "named": true
   },
@@ -400,6 +626,10 @@
     "extra": true
   },
   {
+    "type": "pipe",
+    "named": true
+  },
+  {
     "type": "tag_name",
     "named": true
   },
@@ -416,7 +646,15 @@
     "named": false
   },
   {
+    "type": "{{",
+    "named": false
+  },
+  {
     "type": "}",
+    "named": false
+  },
+  {
+    "type": "}}",
     "named": false
   }
 ]

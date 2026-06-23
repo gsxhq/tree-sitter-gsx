@@ -19,7 +19,17 @@ module.exports = grammar({
     _paren_go: $ => token(prec(-1, /[^()]+/)),
 
     body: $ => seq('{', repeat($._node), '}'),
-    _node: $ => choice($.element, $.fragment, $.doctype, $.html_comment, $.content_comment, $.text),
+    _node: $ => choice(
+      $.element,
+      $.fragment,
+      $.doctype,
+      $.html_comment,
+      $.content_comment,
+      $.interpolation,
+      $.control_flow,
+      $.go_block,
+      $.text,
+    ),
 
     fragment: $ => seq('<>', repeat($._node), '</>'),
     doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
@@ -35,8 +45,34 @@ module.exports = grammar({
     self_closing_element: $ => seq('<', field('name', $.tag_name), repeat($.attribute), '/>'),
     tag_name: $ => /[A-Za-z][A-Za-z0-9.\-]*/,
 
-    // Static attribute only for now (expr/bool/etc. in Task 5).
-    attribute: $ => seq($.attribute_name, optional(seq('=', $.quoted_string))),
+    // Interpolation: { expr } or { expr? }
+    interpolation: $ => seq('{', $._hole_body, optional('?'), '}'),
+    _hole_body: $ => $.pipeline,
+    pipeline: $ => seq($.go_expr, repeat(seq($.pipe, $.go_expr))),
+    go_expr: $ => $.go_text,
+
+    // Task 6 stubs — will be implemented in the next task
+    go_block: $ => seq('{{', $.go_text, '}}'),
+    control_flow: $ => seq('{', choice(
+      seq(/if|for/, $.go_expr, '{', repeat($.attribute), '}',
+        optional(seq(/else/, '{', repeat($.attribute), '}'))),
+    ), '}'),
+
+    // Attributes
+    attribute: $ => choice(
+      $.static_attribute,
+      $.expr_attribute,
+      $.bool_attribute,
+      $.spread_attribute,
+      $.conditional_attribute,
+    ),
+    static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
+    expr_attribute: $ => seq($.attribute_name, '=', '{', $.pipeline, optional('?'), '}'),
+    bool_attribute: $ => prec(-1, $.attribute_name),
+    spread_attribute: $ => seq('{', '...', $.go_expr, '}'),
+    conditional_attribute: $ => seq('{', /if|for/, $.go_expr, '{', repeat($.attribute), '}',
+      optional(seq(/else/, '{', repeat($.attribute), '}')), '}'),
+
     attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
     quoted_string: $ => choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'")),
 

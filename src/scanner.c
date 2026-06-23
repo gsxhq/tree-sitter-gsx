@@ -58,7 +58,15 @@ static bool scan_go_text(TSLexer *l) {
       case '\'':{ advance(l); while (!l->eof(l) && l->lookahead!='\'') { if (l->lookahead=='\\') advance(l); advance(l);} if(!l->eof(l)) advance(l); break; }
       case '/': { advance(l); if (l->lookahead=='/') { while(!l->eof(l)&&l->lookahead!='\n') advance(l);} else if (l->lookahead=='*'){ advance(l); int32_t prev=0; while(!l->eof(l)&&!(prev=='*'&&l->lookahead=='/')){prev=l->lookahead;advance(l);} if(!l->eof(l)) advance(l);} break; }
       case '{': depth++; advance(l); break;
-      case '}': if (depth>0) depth--; advance(l); break;
+      case '}': {
+        if (depth == 0) {
+          l->mark_end(l);
+          return consumed;
+        }
+        depth--;
+        advance(l);
+        break;
+      }
       default: advance(l); break;
     }
     prev_c = c;
