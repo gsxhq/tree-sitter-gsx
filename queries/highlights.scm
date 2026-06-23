@@ -5,13 +5,15 @@
 ; Component declaration name → function
 (component_declaration name: (identifier) @function)
 
-; Element tag (lowercase start) → tag; component/dotted tag (uppercase or dotted) → type
+; Element tag: lowercase/hyphenated, NO dot
 ((tag_name) @tag
-  (#match? @tag "^[a-z]"))
+  (#match? @tag "^[a-z][a-z0-9-]*$"))
+; Component tag: uppercase-initial
 ((tag_name) @type
-  (#match? @tag "^[A-Z]"))
+  (#match? @type "^[A-Z]"))
+; Component tag: dotted (e.g. nav.Link, ui.Button)
 ((tag_name) @type
-  (#match? @tag "\\."))
+  (#match? @type "\\."))
 
 ; Attributes and strings
 (attribute_name) @attribute
