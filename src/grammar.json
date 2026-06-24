@@ -487,18 +487,6 @@
           "name": "_hole_body"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "?"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
           "type": "STRING",
           "value": "}"
         }
@@ -552,6 +540,10 @@
     "go_expr": {
       "type": "SYMBOL",
       "name": "go_text"
+    },
+    "go_spread_expr": {
+      "type": "SYMBOL",
+      "name": "go_spread_text"
     },
     "go_block": {
       "type": "SEQ",
@@ -733,18 +725,6 @@
           "name": "_hole_body"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "?"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
           "type": "STRING",
           "value": "}"
         }
@@ -766,12 +746,12 @@
           "value": "{"
         },
         {
-          "type": "STRING",
-          "value": "..."
+          "type": "SYMBOL",
+          "name": "go_spread_expr"
         },
         {
-          "type": "SYMBOL",
-          "name": "go_expr"
+          "type": "STRING",
+          "value": "..."
         },
         {
           "type": "STRING",
@@ -988,6 +968,10 @@
     {
       "type": "SYMBOL",
       "name": "go_interp_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "go_spread_text"
     }
   ],
   "inline": [],

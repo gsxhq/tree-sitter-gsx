@@ -7,6 +7,10 @@
 ((go_interp_text) @injection.content
  (#set! injection.language "go"))
 
+; go_spread_text: Go source inside spread/splat attribute { expr... }.
+((go_spread_text) @injection.content
+ (#set! injection.language "go"))
+
 ; go_cond_text: Go source in conditional / control-flow attribute conditions.
 ((go_cond_text) @injection.content
  (#set! injection.language "go"))

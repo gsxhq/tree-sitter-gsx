@@ -1,11 +1,11 @@
 ==================
-holes, try-marker, expr/bool/spread attributes
+holes, expr/bool/spread attributes
 ==================
 
 component H(x int) {
-  <div id={x} hidden {...attrs} class="c">
+  <div id={x} hidden { attrs... } class="c">
     {title}
-    {user.Name?}
+    {user.Name}
   </div>
 }
 
@@ -32,8 +32,8 @@ component H(x int) {
               (attribute_name)))
           (attribute
             (spread_attribute
-              (go_expr
-                (go_text))))
+              (go_spread_expr
+                (go_spread_text))))
           (attribute
             (static_attribute
               (attribute_name)
@@ -84,12 +84,12 @@ component C(x int) {
     (go_text)))
 
 ==================
-try-marker go_text stops before ?
+interpolation auto-unwrap (no ? marker)
 ==================
 
 component T() {
   {x}
-  {x?}
+  {y}
 }
 
 ---
@@ -109,5 +109,40 @@ component T() {
         (pipeline
           (go_interp_expr
             (go_interp_text))))))
+  (go_chunk
+    (go_text)))
+
+==================
+component-tag whole-struct splat
+==================
+
+component Page(p Props) {
+  <Card { data... }/>
+  <ui.Button { btn... }/>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (spread_attribute
+              (go_spread_expr
+                (go_spread_text))))))
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (spread_attribute
+              (go_spread_expr
+                (go_spread_text))))))))
   (go_chunk
     (go_text)))

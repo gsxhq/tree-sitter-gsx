@@ -6,7 +6,8 @@ module.exports = grammar({
   //   pipe           — pipe operator (Task 9)
   //   go_cond_text   — Go text for control-flow condition (stops at depth-0 '{')
   //   go_interp_text — Go text inside interpolation { } (refuses if/for/switch)
-  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text],
+  //   go_spread_text — Go text for spread/splat expr (refuses if/for/switch; stops at depth-0 '...')
+  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
@@ -63,14 +64,19 @@ module.exports = grammar({
     // Interpolation: { expr } or { expr? } or { markup }
     // go_interp_text is used here (not go_text) so the scanner can refuse
     // control-flow keywords and let the control_flow rule win instead.
-    interpolation: $ => seq('{', $._hole_body, optional('?'), '}'),
+    interpolation: $ => seq('{', $._hole_body, '}'),
     _hole_body: $ => choice($.pipeline, repeat1($._node)),
     pipeline: $ => seq($.go_interp_expr, repeat(seq($.pipe, $.go_interp_expr))),
     go_interp_expr: $ => $.go_interp_text,
 
-    // go_expr is used in attribute contexts (expr_attribute, spread_attribute)
-    // where control-flow keywords are not valid anyway.
+    // go_expr is used in expr_attribute and other contexts where
+    // control-flow keywords are not valid anyway.
     go_expr: $ => $.go_text,
+
+    // go_spread_expr is used exclusively in spread_attribute: refuses if/for/switch
+    // (so conditional_attribute wins when those keywords appear) and stops at
+    // depth-0 '...' (so the trailing spread token can be matched literally).
+    go_spread_expr: $ => $.go_spread_text,
 
     // go_block ({{ ... }}) for Go statements
     go_block: $ => seq('{{', $.go_text, '}}'),
@@ -102,9 +108,9 @@ module.exports = grammar({
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
     // Attribute value can be a Go expression (pipeline) OR markup nodes.
     // e.g. header={ <h1>text</h1> } or value={ expr }.
-    expr_attribute: $ => seq($.attribute_name, '=', '{', $._hole_body, optional('?'), '}'),
+    expr_attribute: $ => seq($.attribute_name, '=', '{', $._hole_body, '}'),
     bool_attribute: $ => prec(-1, $.attribute_name),
-    spread_attribute: $ => seq('{', '...', $.go_expr, '}'),
+    spread_attribute: $ => seq('{', $.go_spread_expr, '...', '}'),
     conditional_attribute: $ => seq(
       '{',
       alias(/if|for/, $.keyword),

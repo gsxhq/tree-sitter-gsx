@@ -2,7 +2,7 @@
 #include <string.h>
 
 // Token order must match externals array in grammar.js.
-enum TokenType { GO_TEXT, RAW_TEXT, PIPE, GO_COND_TEXT, GO_INTERP_TEXT };
+enum TokenType { GO_TEXT, RAW_TEXT, PIPE, GO_COND_TEXT, GO_INTERP_TEXT, GO_SPREAD_TEXT };
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
 void tree_sitter_gsx_external_scanner_destroy(void *p) {}
@@ -18,14 +18,19 @@ static bool is_ident_char(int32_t c) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Scan a go_text / go_cond_text / go_interp_text token.
+// Scan a go_text / go_cond_text / go_interp_text / go_spread_text token.
 //
 // Parameters:
 //   stop_open_brace  — stop at depth-0 '{' (go_cond_text mode).
 //   refuse_keywords  — refuse when content (after optional WS) begins with a
-//                      Go control-flow keyword (if / for / switch).  Only set
-//                      for GO_INTERP_TEXT so that `{ if … }` becomes a
-//                      control_flow node rather than an interpolation.
+//                      Go control-flow keyword (if / for / switch).  Set for
+//                      GO_INTERP_TEXT and GO_SPREAD_TEXT so that `{ if … }`
+//                      becomes a control_flow node rather than an interpolation
+//                      or spread, and `{ if … }` in attr position becomes a
+//                      conditional_attribute rather than a spread_attribute.
+//   stop_spread_dots — stop at depth-0 '...' (go_spread_text mode), allowing
+//                      the grammar rule seq('{', go_spread_expr, '...', '}') to
+//                      match the trailing literal '...'.
 //
 // Keyword-refusal with multi-char lookahead:
 //   TSLexer provides only one-char lookahead (l->lookahead).  To detect a
@@ -48,7 +53,7 @@ static bool is_ident_char(int32_t c) {
 
 #define PEEK_BUF_CAP 16
 
-static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords) {
+static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords, bool stop_spread_dots) {
   int32_t peek[PEEK_BUF_CAP];
   int     peek_len = 0;
 
@@ -85,12 +90,14 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     // Stop at delimiters so they stay in the lexer for the main loop.
     // NOTE: '|' is excluded from the peek buffer so that |> detection always
     // happens from the live lexer (where mark_end can correctly point before '|').
+    // NOTE: '.' is excluded when stop_spread_dots is set so that '...' is never
+    // consumed into the peek buffer and always reaches the main loop '.' case.
     while (!l->eof(l) && peek_len < PEEK_BUF_CAP) {
       int32_t c = l->lookahead;
       if (c == ' ' || c == '\t' || c == '\r' || c == '\n' ||
           c == '<' || c == '{' || c == '}' || c == '?' ||
           c == '(' || c == ')' || c == '"' || c == '\'' || c == '`' ||
-          c == '|') {
+          c == '|' || (stop_spread_dots && c == '.')) {
         break;
       }
       peek[peek_len++] = c;
@@ -241,6 +248,35 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
         ADV();
         break;
       }
+      case '.': {
+        // In go_spread_text mode: stop at depth-0 '...' so the grammar rule
+        // seq('{', go_spread_expr, '...', '}') can match the literal '...'.
+        // A single '.' or '..' is valid Go (field access, float literal) and
+        // must NOT split — only a depth-0 triple-dot is a stop.
+        // This case fires only from the live lexer (peek_pos >= peek_len) since
+        // '.' is not a peek-stop char, but we guard anyway.
+        if (stop_spread_dots && depth == 0 && paren_depth == 0 && peek_pos >= peek_len) {
+          l->mark_end(l);       // candidate end: just before first '.'
+          advance(l);           // consume first '.'
+          if (l->lookahead == '.') {
+            advance(l);         // consume second '.'
+            if (l->lookahead == '.') {
+              // it IS '...' — stop before it (mark_end already set)
+              return consumed;
+            }
+            // was '..' — not a splat; include both dots and continue
+            consumed = true;
+            l->mark_end(l);
+            continue;
+          }
+          // was single '.' — include it and continue
+          consumed = true;
+          l->mark_end(l);
+          continue;
+        }
+        ADV();
+        break;
+      }
       case '}': {
         if (depth == 0) { l->mark_end(l); return consumed; }
         depth--; ADV();
@@ -352,16 +388,19 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
     if (scan_pipe(l)) { l->result_symbol = PIPE; return true; }
   }
   if (valid[GO_COND_TEXT]) {
-    if (scan_go_text_impl(l, true, false)) { l->result_symbol = GO_COND_TEXT; return true; }
+    if (scan_go_text_impl(l, true, false, false)) { l->result_symbol = GO_COND_TEXT; return true; }
   }
   if (valid[GO_INTERP_TEXT]) {
-    if (scan_go_text_impl(l, false, true)) { l->result_symbol = GO_INTERP_TEXT; return true; }
+    if (scan_go_text_impl(l, false, true, false)) { l->result_symbol = GO_INTERP_TEXT; return true; }
+  }
+  if (valid[GO_SPREAD_TEXT]) {
+    if (scan_go_text_impl(l, false, true, true)) { l->result_symbol = GO_SPREAD_TEXT; return true; }
   }
   if (valid[RAW_TEXT]) {
     if (scan_raw_text(l)) { l->result_symbol = RAW_TEXT; return true; }
   }
   if (valid[GO_TEXT]) {
-    if (scan_go_text_impl(l, false, false)) { l->result_symbol = GO_TEXT; return true; }
+    if (scan_go_text_impl(l, false, false, false)) { l->result_symbol = GO_TEXT; return true; }
   }
   return false;
 }

@@ -540,6 +540,21 @@
     }
   },
   {
+    "type": "go_spread_expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "go_spread_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "html_comment",
     "named": true,
     "fields": {}
@@ -726,7 +741,7 @@
       "required": true,
       "types": [
         {
-          "type": "go_expr",
+          "type": "go_spread_expr",
           "named": true
         }
       ]
@@ -842,10 +857,6 @@
     "named": false
   },
   {
-    "type": "?",
-    "named": false
-  },
-  {
     "type": "@{",
     "named": false
   },
@@ -868,6 +879,10 @@
   },
   {
     "type": "go_interp_text",
+    "named": true
+  },
+  {
+    "type": "go_spread_text",
     "named": true
   },
   {

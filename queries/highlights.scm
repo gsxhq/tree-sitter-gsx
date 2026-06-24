@@ -21,7 +21,7 @@
 
 ; Operators
 (pipe) @operator
-"?" @operator
+"..." @operator
 
 ; Punctuation — special (holes, go-blocks, go-statement blocks)
 "{" @punctuation.special
