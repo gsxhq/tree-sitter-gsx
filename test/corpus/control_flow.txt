@@ -259,3 +259,107 @@ component F() { { if c { <a/> } else if d { <b/> } else { <c/> } } }
                 name: (tag_name))))))))
   (go_chunk
     (go_text)))
+
+==================
+value-form if/else in attribute (leading, approach b)
+==================
+
+component F() { <div class={ if open { "on" } else { "off" } }></div> }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (value_control_flow
+                (keyword)
+                (go_cond_text)
+                (block
+                  (text))
+                (else_clause
+                  (keyword)
+                  (block
+                    (text)))))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+value-form switch in attribute (leading, approach b)
+==================
+
+component F() { <div class={ switch variant { case Green: { "a" } default: { "b" } } }></div> }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (value_control_flow
+                (keyword)
+                (go_cond_text)
+                (block
+                  (text)
+                  (interpolation
+                    (pipeline
+                      (go_interp_expr
+                        (go_interp_text))))
+                  (text)
+                  (interpolation
+                    (pipeline
+                      (go_interp_expr
+                        (go_interp_text)))))))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+value-form switch comma-prefix: unstructured (approach b limitation)
+==================
+
+component F() { <div class={ "x", switch v { case 1: { "a" } default: { "b" } } }></div> }
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (pipeline
+                (go_interp_expr
+                  (go_interp_text))))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))

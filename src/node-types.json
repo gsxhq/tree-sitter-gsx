@@ -424,6 +424,10 @@
         {
           "type": "text",
           "named": true
+        },
+        {
+          "type": "value_control_flow",
+          "named": true
         }
       ]
     }
@@ -787,6 +791,33 @@
         },
         {
           "type": "quoted_string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "value_control_flow",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "else_clause",
+          "named": true
+        },
+        {
+          "type": "go_cond_text",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         }
       ]
