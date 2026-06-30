@@ -102,8 +102,8 @@ module.exports = grammar({
     // Limitation: a preceding comma-separated segment (e.g. class={"x", if ...}) causes
     // the scanner to consume the entire value as a single go_interp_text token since
     // go_interp_text only refuses keywords at the very start of a scan, not mid-token.
-    // Arms are re-parsed as _node repeats (block rule), so arm bodies like { "str" }
-    // show "str" as text nodes rather than Go expressions — acceptable for highlighting.
+    // Switch case values are unbraced and remain text within the surrounding
+    // switch block; Go highlighting handles their expression content.
     // No scanner.c changes required; existing corpus tests are unaffected.
     value_control_flow: $ => seq(
       alias(/if|switch/, $.keyword),

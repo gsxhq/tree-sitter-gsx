@@ -299,7 +299,7 @@ component F() { <div class={ if open { "on" } else { "off" } }></div> }
 value-form switch in attribute (leading, approach b)
 ==================
 
-component F() { <div class={ switch variant { case Green: { "a" } default: { "b" } } }></div> }
+component F() { <div class={ switch variant { case Green: "a" default: "b" } }></div> }
 
 ---
 
@@ -320,16 +320,7 @@ component F() { <div class={ switch variant { case Green: { "a" } default: { "b"
                 (keyword)
                 (go_cond_text)
                 (block
-                  (text)
-                  (interpolation
-                    (pipeline
-                      (go_interp_expr
-                        (go_interp_text))))
-                  (text)
-                  (interpolation
-                    (pipeline
-                      (go_interp_expr
-                        (go_interp_text)))))))))
+                  (text))))))
         (end_tag
           (tag_name)))))
   (go_chunk
@@ -339,7 +330,7 @@ component F() { <div class={ switch variant { case Green: { "a" } default: { "b"
 value-form switch comma-prefix: unstructured (approach b limitation)
 ==================
 
-component F() { <div class={ "x", switch v { case 1: { "a" } default: { "b" } } }></div> }
+component F() { <div class={ "x", switch v { case 1: "a" default: "b" } }></div> }
 
 ---
 
