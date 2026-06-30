@@ -7,7 +7,7 @@
 //   - { switch … } with cases
 //   - nested control flow (for containing if)
 //   - <>…</> fragments for multiple roots
-//   - the `?` try-marker for (val, err) — implicit error propagation
+//   - native (val, err) auto-unwrap — implicit error propagation
 //   - {{ stmt }} escape hatch — its remaining STRONG use cases
 //
 // The three brace forms are disambiguated by the leading token:
@@ -15,8 +15,9 @@
 //   { if|for|switch … } -> control flow (markup bodies become children)
 //   {{ stmt }}          -> pure Go statements, no output (between markup siblings)
 //
-// A component has NO return type and NO `return`. If its body uses `?` (or a
-// {{ }} that returns an error), it is generated with an implicit error return.
+// A component has NO return type and NO `return`. If its body uses a fallible
+// expression (or a {{ }} that returns an error), it is generated with an
+// implicit error return.
 
 package examples
 
@@ -83,16 +84,16 @@ component Toasts(messages []string) {
 	</>
 }
 
-// ─── (val, err) handling: the `?` try-marker vs. the {{ }} escape hatch ───────
+// ─── (val, err) handling: auto-unwrap vs. the {{ }} escape hatch ──────────────
 
-// PREFERRED: the `?` try-marker unwraps a (T, error) call inline, using T and
-// propagating err as this component's (implicit) error return. No pre-computing
-// URLs up front, no manual `if err != nil { return … }`. Because the body uses
-// `?`, this component is generated with an error return.
+// PREFERRED: a (T, error) call unwraps inline, using T and propagating err as
+// this component's (implicit) error return. No pre-computing URLs up front, no
+// manual `if err != nil { return … }`. Because the body uses a fallible value,
+// this component is generated with an error return.
 component RemoveFilterLink(page gsx.Node, paramName string) {
 	<a class="filter">
 		<span
-			hx-get={ routeURL(ctx, page, map[string]string{paramName: ""})? }
+			hx-get={ routeURL(ctx, page, map[string]string{paramName: ""}) }
 			hx-push-url="true"
 		>Remove {paramName}</span>
 	</a>
@@ -100,8 +101,8 @@ component RemoveFilterLink(page gsx.Node, paramName string) {
 
 // STILL VALID: the {{ }} escape hatch for the same (val, err) case. Use it when
 // you need to inspect/transform the value or branch on the error before
-// rendering, rather than straight-line propagation. `?` is the tidy default;
-// {{ }} is the explicit form when you need the extra statements.
+// rendering, rather than straight-line propagation. Auto-unwrap is the tidy
+// default; {{ }} is the explicit form when you need the extra statements.
 component RemoveFilterLinkExplicit(page gsx.Node, paramName string) {
 	<a class="filter">
 		{{
@@ -114,7 +115,7 @@ component RemoveFilterLinkExplicit(page gsx.Node, paramName string) {
 	</a>
 }
 
-// ─── {{ }} escape-hatch strong use cases (no `?` equivalent) ──────────────────
+// ─── {{ }} escape-hatch strong use cases ──────────────────────────────────────
 
 // STRONG USE CASE: a derived value reused by several following siblings —
 // compute once, reference in multiple places without recomputation.

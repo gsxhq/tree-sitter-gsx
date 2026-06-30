@@ -1,4 +1,4 @@
-// 09_realworld_form_htmx.gsx — forms, HTMX, type-safe URLs & native `?` errors
+// 09_realworld_form_htmx.gsx — forms, HTMX, type-safe URLs & native error unwrap
 //
 // Real-world pattern (both projects): a form composed of Field sub-components
 // with conditional error display, HTMX-driven submission with smart targeting,
@@ -6,12 +6,12 @@
 //
 // Demonstrates:
 //   - component X(inline params) { … } — no return type, no `return` (emission)
-//   - native (T, error) via the `?` try-marker: `structpages.URLFor(ctx, X{})?`
+//   - native (T, error) auto-unwrap: `structpages.URLFor(ctx, X{})`
 //     unwraps the value and propagates err as the component's implicit error
 //     return — no {{ action, err := …; if err != nil { return nil, err } }} dance
 //   - implicit rest: undeclared call-site attrs (hx-get/hx-trigger/…) collect
 //     into the component's Attrs because the body references `attrs`
-//   - type-driven boolean attrs, conditional `{ if … { attr } }`, spread `{...attrs}`
+//   - type-driven boolean attrs, conditional `{ if … { attr } }`, spread `{attrs...}`
 
 package examples
 
@@ -38,7 +38,7 @@ component Field(name string, label string, value string, error string, required 
 			{ if error != "" { aria-invalid="true" } }
 			required={required}
 			class="w-full rounded-md border px-3 py-2"
-			{...attrs}
+			{attrs...}
 		/>
 		{ if error != "" {
 			<p class="text-sm text-red-500">{error}</p>
@@ -47,11 +47,11 @@ component Field(name string, label string, value string, error string, required 
 }
 
 // A form using type-safe route generation. structpages.URLFor returns
-// (string, error); the `?` marker unwraps it inline and propagates the error as
-// this component's implicit error return — no explicit (gsx.Node, error) needed.
+// (string, error); GSX unwraps it inline and propagates the error as this
+// component's implicit error return — no explicit (gsx.Node, error) needed.
 component CreateUserForm() {
 	<form
-		hx-post={ structpages.URLFor(ctx, CreateUser{})? }
+		hx-post={ structpages.URLFor(ctx, CreateUser{}) }
 		hx-target={ structpages.IDTarget(ctx, UsersList{}) }
 		hx-swap="beforeend"
 		hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -63,7 +63,7 @@ component CreateUserForm() {
 			name="email"
 			label="Email"
 			required
-			hx-get={ structpages.URLFor(ctx, CheckEmail{})? }
+			hx-get={ structpages.URLFor(ctx, CheckEmail{}) }
 			hx-trigger="change"
 			hx-target="#email-status"
 		/>
@@ -78,7 +78,7 @@ component CreateUserForm() {
 component RemovableBadge(label string) {
 	<a
 		class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs"
-		{...attrs}
+		{attrs...}
 	>
 		{label}
 		<span aria-hidden="true">×</span>

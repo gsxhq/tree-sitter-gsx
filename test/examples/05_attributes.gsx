@@ -4,7 +4,7 @@
 //   - dynamic attrs:        name={ expr }
 //   - boolean attrs:        bare `open`, and type-driven `disabled={ cond }`
 //   - conditional attrs:    in-tag { if … } statements (form 1)
-//   - spread attrs:         {...attrs} on elements (form 2)  — and the two combined
+//   - spread attrs:         {attrs...} on elements (form 2)  — and the two combined
 //   - implicit rest:        referencing `attrs` adds an `Attrs gsx.Attrs` field;
 //                           undeclared call-site attrs collect into it
 //   - implicit children:    referencing `children` adds a `Children gsx.Node` field
@@ -40,7 +40,7 @@ component Button(id string, class string, variant string, disabled bool) {
 		// type-driven boolean attribute
 		disabled={disabled}
 		// spread the collected rest attrs (form 2)
-		{...attrs}
+		{attrs...}
 	>
 		{children}
 	</button>

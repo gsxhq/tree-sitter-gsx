@@ -39,7 +39,7 @@ component (p UsersPage) Page() {
 component (p UsersPage) Content() {
 	<div
 		id={ structpages.ID(ctx, UsersList{}) }
-		hx-get={ structpages.URLFor(ctx, UsersList{})? }
+		hx-get={ structpages.URLFor(ctx, UsersList{}) }
 		hx-trigger="ListChangedEvent from:body"
 		hx-swap="outerHTML"
 	>
