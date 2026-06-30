@@ -2,6 +2,12 @@
 "component" @keyword
 (keyword) @keyword
 
+; Value-form if/switch inside attribute values (class={}, style={}, etc.)
+; if/switch/else keywords are (keyword) nodes, already captured above.
+; Note: case/default labels inside switch arms are text nodes under approach (b)
+; and are not individually highlighted — see grammar.js value_control_flow comment.
+(value_control_flow (keyword) @keyword)
+
 ; Component declaration name → function
 (component_declaration name: (identifier) @function)
 

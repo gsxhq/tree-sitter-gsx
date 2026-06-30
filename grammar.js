@@ -97,6 +97,21 @@ module.exports = grammar({
       $.block,
     ),
 
+    // value_control_flow: if/switch inside an attribute value (class={}, style={}, etc.)
+    // Approach (b): structural only when the keyword LEADS the whole attribute value.
+    // Limitation: a preceding comma-separated segment (e.g. class={"x", if ...}) causes
+    // the scanner to consume the entire value as a single go_interp_text token since
+    // go_interp_text only refuses keywords at the very start of a scan, not mid-token.
+    // Switch case values are unbraced and remain text within the surrounding
+    // switch block; Go highlighting handles their expression content.
+    // No scanner.c changes required; existing corpus tests are unaffected.
+    value_control_flow: $ => seq(
+      alias(/if|switch/, $.keyword),
+      $.go_cond_text,
+      $.block,
+      repeat($.else_clause),
+    ),
+
     // Attributes (including conditional_attribute)
     attribute: $ => choice(
       $.static_attribute,
@@ -106,9 +121,12 @@ module.exports = grammar({
       $.conditional_attribute,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
-    // Attribute value can be a Go expression (pipeline) OR markup nodes.
-    // e.g. header={ <h1>text</h1> } or value={ expr }.
-    expr_attribute: $ => seq($.attribute_name, '=', '{', $._hole_body, '}'),
+    // Attribute value: Go expression (pipeline), markup nodes, or a value-form
+    // if/switch (value_control_flow).  _attr_hole_body extends _hole_body with
+    // value_control_flow so that class={ if cond { "a" } else { "b" } } is parsed
+    // structurally; it does NOT affect interpolation {} which keeps using _hole_body.
+    expr_attribute: $ => seq($.attribute_name, '=', '{', $._attr_hole_body, '}'),
+    _attr_hole_body: $ => choice($.value_control_flow, $._hole_body),
     bool_attribute: $ => prec(-1, $.attribute_name),
     spread_attribute: $ => seq('{', $.go_spread_expr, '...', '}'),
     conditional_attribute: $ => seq(
