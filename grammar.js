@@ -114,6 +114,7 @@ module.exports = grammar({
 
     // Attributes (including conditional_attribute)
     attribute: $ => choice(
+      $.embedded_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
@@ -121,11 +122,34 @@ module.exports = grammar({
       $.conditional_attribute,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
+    embedded_attribute: $ => prec(1, seq(
+      $.attribute_name,
+      '=',
+      choice(
+        field('value', $.embedded_js_literal),
+        field('value', $.embedded_css_literal),
+        seq('{', field('value', $.embedded_js_literal), '}'),
+        seq('{', field('value', $.embedded_css_literal), '}'),
+      ),
+    )),
+    embedded_js_literal: $ => seq(
+      alias('js', $.embedded_language),
+      '`',
+      repeat(choice($.embedded_text, $.at_hole)),
+      '`',
+    ),
+    embedded_css_literal: $ => seq(
+      alias('css', $.embedded_language),
+      '`',
+      repeat(choice($.embedded_text, $.at_hole)),
+      '`',
+    ),
+    embedded_text: $ => token(prec(-1, repeat1(choice(/\\`/, /[^`@]+/)))),
     // Attribute value: Go expression (pipeline), markup nodes, or a value-form
     // if/switch (value_control_flow).  _attr_hole_body extends _hole_body with
     // value_control_flow so that class={ if cond { "a" } else { "b" } } is parsed
     // structurally; it does NOT affect interpolation {} which keeps using _hole_body.
-    expr_attribute: $ => seq($.attribute_name, '=', '{', $._attr_hole_body, '}'),
+    expr_attribute: $ => prec(-1, seq($.attribute_name, '=', '{', $._attr_hole_body, '}')),
     _attr_hole_body: $ => choice($.value_control_flow, $._hole_body),
     bool_attribute: $ => prec(-1, $.attribute_name),
     spread_attribute: $ => seq('{', $.go_spread_expr, '...', '}'),

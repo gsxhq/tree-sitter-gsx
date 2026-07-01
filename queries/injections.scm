@@ -38,4 +38,14 @@
   (#set! injection.language "css")
   (#set! injection.combined true))
 
-; DEFERRED: JS/CSS-context attribute injection (x-data="...", style="...") — not implemented in v1.
+; Explicit js`...` attr literal text runs → JavaScript, stitched across @{ } holes.
+(embedded_js_literal
+  (embedded_text) @injection.content
+  (#set! injection.language "javascript")
+  (#set! injection.combined true))
+
+; Explicit css`...` attr literal text runs → CSS, stitched across @{ } holes.
+(embedded_css_literal
+  (embedded_text) @injection.content
+  (#set! injection.language "css")
+  (#set! injection.combined true))

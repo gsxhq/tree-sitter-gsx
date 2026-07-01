@@ -31,6 +31,10 @@
           "named": true
         },
         {
+          "type": "embedded_attribute",
+          "named": true
+        },
+        {
           "type": "expr_attribute",
           "named": true
         },
@@ -349,6 +353,82 @@
         },
         {
           "type": "keyword",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_attribute",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "embedded_css_literal",
+            "named": true
+          },
+          {
+            "type": "embedded_js_literal",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_css_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_js_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
           "named": true
         }
       ]
@@ -892,6 +972,10 @@
     "named": false
   },
   {
+    "type": "`",
+    "named": false
+  },
+  {
     "type": "attribute_name",
     "named": true
   },
@@ -903,6 +987,14 @@
   {
     "type": "component",
     "named": false
+  },
+  {
+    "type": "embedded_language",
+    "named": true
+  },
+  {
+    "type": "embedded_text",
+    "named": true
   },
   {
     "type": "go_cond_text",

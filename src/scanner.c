@@ -65,6 +65,31 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     }
     if (l->eof(l)) return false;  // nothing to emit
 
+    // In attribute values, {js`...`} and {css`...`} are explicit embedded
+    // language literals, not Go expressions. Refuse here so the internal
+    // embedded_attribute rule can match them.
+    if (l->lookahead == 'j') {
+      peek[peek_len++] = 'j';
+      advance(l);
+      if (l->lookahead == 's') {
+        peek[peek_len++] = 's';
+        advance(l);
+        if (l->lookahead == '`') return false;
+      }
+    } else if (l->lookahead == 'c') {
+      peek[peek_len++] = 'c';
+      advance(l);
+      if (l->lookahead == 's') {
+        peek[peek_len++] = 's';
+        advance(l);
+        if (l->lookahead == 's') {
+          peek[peek_len++] = 's';
+          advance(l);
+          if (l->lookahead == '`') return false;
+        }
+      }
+    }
+
     // If the first non-whitespace char is '<', check if it's markup:
     //   - '<' followed by a letter → tag start like <div
     //   - '<' followed by '>'      → fragment <>
