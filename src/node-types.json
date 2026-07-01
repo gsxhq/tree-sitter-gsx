@@ -268,6 +268,29 @@
     }
   },
   {
+    "type": "css_composed_value",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "embedded_css_literal",
+          "named": true
+        },
+        {
+          "type": "go_interp_expr",
+          "named": true
+        },
+        {
+          "type": "style_go_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "doctype",
     "named": true,
     "fields": {}
@@ -467,6 +490,10 @@
         },
         {
           "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "css_composed_value",
           "named": true
         },
         {
@@ -1031,6 +1058,10 @@
   },
   {
     "type": "raw_text",
+    "named": true
+  },
+  {
+    "type": "style_go_text",
     "named": true
   },
   {

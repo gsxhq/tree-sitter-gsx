@@ -5,6 +5,7 @@ embedded JS/CSS attribute literals
 component H(id string, pct int) {
   <button @click=js`save(@{id})` style=css`width:@{pct}%`/>
   <button @click={js`save(@{id})`}/>
+  <button style={ "hidden": true, css`color:@{color}` }/>
 }
 
 ---
@@ -51,7 +52,23 @@ component H(id string, pct int) {
                 (at_hole
                   (go_expr
                     (go_text)))
-                (embedded_text))))))))
+                (embedded_text))))))
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (expr_attribute
+              (attribute_name)
+              (css_composed_value
+                (go_interp_expr
+                  (go_interp_text))
+                (embedded_css_literal
+                  (embedded_language)
+                  (embedded_text)
+                  (at_hole
+                    (go_expr
+                      (go_text))))
+                (style_go_text))))))))
   (go_chunk
     (go_text)))
 
