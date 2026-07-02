@@ -31,6 +31,10 @@
           "named": true
         },
         {
+          "type": "embedded_attribute",
+          "named": true
+        },
+        {
           "type": "expr_attribute",
           "named": true
         },
@@ -205,6 +209,16 @@
             "named": true
           }
         ]
+      },
+      "type_parameters": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_parameters",
+            "named": true
+          }
+        ]
       }
     }
   },
@@ -258,6 +272,29 @@
         },
         {
           "type": "keyword",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "css_composed_value",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "embedded_css_literal",
+          "named": true
+        },
+        {
+          "type": "go_interp_expr",
+          "named": true
+        },
+        {
+          "type": "style_go_text",
           "named": true
         }
       ]
@@ -355,6 +392,82 @@
     }
   },
   {
+    "type": "embedded_attribute",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "embedded_css_literal",
+            "named": true
+          },
+          {
+            "type": "embedded_js_literal",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_css_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_js_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "end_tag",
     "named": true,
     "fields": {},
@@ -387,6 +500,10 @@
         },
         {
           "type": "control_flow",
+          "named": true
+        },
+        {
+          "type": "css_composed_value",
           "named": true
         },
         {
@@ -703,6 +820,16 @@
             "named": true
           }
         ]
+      },
+      "type_arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_arguments",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
@@ -764,6 +891,16 @@
             "named": true
           }
         ]
+      },
+      "type_arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_arguments",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
@@ -795,6 +932,16 @@
         }
       ]
     }
+  },
+  {
+    "type": "type_arguments",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "type_parameters",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "value_control_flow",
@@ -892,6 +1039,18 @@
     "named": false
   },
   {
+    "type": "[",
+    "named": false
+  },
+  {
+    "type": "]",
+    "named": false
+  },
+  {
+    "type": "`",
+    "named": false
+  },
+  {
     "type": "attribute_name",
     "named": true
   },
@@ -903,6 +1062,14 @@
   {
     "type": "component",
     "named": false
+  },
+  {
+    "type": "embedded_language",
+    "named": true
+  },
+  {
+    "type": "embedded_text",
+    "named": true
   },
   {
     "type": "go_cond_text",
@@ -939,6 +1106,10 @@
   },
   {
     "type": "raw_text",
+    "named": true
+  },
+  {
+    "type": "style_go_text",
     "named": true
   },
   {

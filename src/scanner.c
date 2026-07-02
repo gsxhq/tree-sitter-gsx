@@ -2,7 +2,15 @@
 #include <string.h>
 
 // Token order must match externals array in grammar.js.
-enum TokenType { GO_TEXT, RAW_TEXT, PIPE, GO_COND_TEXT, GO_INTERP_TEXT, GO_SPREAD_TEXT };
+enum TokenType {
+  GO_TEXT,
+  RAW_TEXT,
+  PIPE,
+  GO_COND_TEXT,
+  GO_INTERP_TEXT,
+  GO_SPREAD_TEXT,
+  STYLE_GO_TEXT,
+};
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
 void tree_sitter_gsx_external_scanner_destroy(void *p) {}
@@ -64,6 +72,31 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
       skip_ws(l);
     }
     if (l->eof(l)) return false;  // nothing to emit
+
+    // In attribute values, {js`...`} and {css`...`} are explicit embedded
+    // language literals, not Go expressions. Refuse here so the internal
+    // embedded_attribute rule can match them.
+    if (l->lookahead == 'j') {
+      peek[peek_len++] = 'j';
+      advance(l);
+      if (l->lookahead == 's') {
+        peek[peek_len++] = 's';
+        advance(l);
+        if (l->lookahead == '`') return false;
+      }
+    } else if (l->lookahead == 'c') {
+      peek[peek_len++] = 'c';
+      advance(l);
+      if (l->lookahead == 's') {
+        peek[peek_len++] = 's';
+        advance(l);
+        if (l->lookahead == 's') {
+          peek[peek_len++] = 's';
+          advance(l);
+          if (l->lookahead == '`') return false;
+        }
+      }
+    }
 
     // If the first non-whitespace char is '<', check if it's markup:
     //   - '<' followed by a letter → tag start like <div
@@ -149,7 +182,7 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     int32_t c = CUR();
 
     // Detect `component` keyword at depth 0 (needs left word boundary).
-    if (depth == 0 && c == 'c' && !is_ident_char(prev_c)) {
+    if (!refuse_keywords && depth == 0 && c == 'c' && !is_ident_char(prev_c)) {
       // mark_end: if still in peek buf, mark_end is already past peeked chars
       // (the lexer consumed them in the peek phase).  That is fine: if we stop
       // here the token ends before 'c' which is peeked → the peeked chars
@@ -178,6 +211,33 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     }
 
     switch (c) {
+      case 'c': {
+        if (refuse_keywords && depth == 0 && !is_ident_char(prev_c) && peek_pos >= peek_len) {
+          l->mark_end(l);
+          advance(l);
+          if (l->lookahead == 's') {
+            advance(l);
+            if (l->lookahead == 's') {
+              advance(l);
+              if (l->lookahead == '`') return consumed;
+              consumed = true;
+              l->mark_end(l);
+              prev_c = 's';
+              continue;
+            }
+            consumed = true;
+            l->mark_end(l);
+            prev_c = 's';
+            continue;
+          }
+          consumed = true;
+          l->mark_end(l);
+          prev_c = 'c';
+          continue;
+        }
+        ADV();
+        break;
+      }
       case '"': {
         ADV();
         while (!IS_EOF() && CUR() != '"') { if (CUR()=='\\') ADV(); ADV(); }
@@ -307,6 +367,109 @@ static bool scan_pipe(TSLexer *l) {
   return true;
 }
 
+static bool scan_style_text(TSLexer *l) {
+  int     depth     = 0;
+  bool    consumed  = false;
+  int32_t prev_c    = 0;
+
+  while (!l->eof(l)) {
+    int32_t c = l->lookahead;
+
+    if (depth == 0 && !is_ident_char(prev_c) && c == 'c') {
+      l->mark_end(l);
+      advance(l);
+      if (l->lookahead == 's') {
+        advance(l);
+        if (l->lookahead == 's') {
+          advance(l);
+          if (l->lookahead == '`') {
+            return consumed;
+          }
+          consumed = true;
+          prev_c = 's';
+          l->mark_end(l);
+          continue;
+        }
+        consumed = true;
+        prev_c = 's';
+        l->mark_end(l);
+        continue;
+      }
+      consumed = true;
+      prev_c = 'c';
+      l->mark_end(l);
+      continue;
+    }
+
+    switch (c) {
+      case '"': {
+        advance(l);
+        while (!l->eof(l) && l->lookahead != '"') {
+          if (l->lookahead == '\\') advance(l);
+          if (!l->eof(l)) advance(l);
+        }
+        if (!l->eof(l)) advance(l);
+        break;
+      }
+      case '`': {
+        advance(l);
+        while (!l->eof(l) && l->lookahead != '`') advance(l);
+        if (!l->eof(l)) advance(l);
+        break;
+      }
+      case '\'': {
+        advance(l);
+        while (!l->eof(l) && l->lookahead != '\'') {
+          if (l->lookahead == '\\') advance(l);
+          if (!l->eof(l)) advance(l);
+        }
+        if (!l->eof(l)) advance(l);
+        break;
+      }
+      case '/': {
+        advance(l);
+        if (!l->eof(l)) {
+          if (l->lookahead == '/') {
+            while (!l->eof(l) && l->lookahead != '\n') advance(l);
+          } else if (l->lookahead == '*') {
+            advance(l);
+            int32_t pbc = 0;
+            while (!l->eof(l) && !(pbc == '*' && l->lookahead == '/')) {
+              pbc = l->lookahead;
+              advance(l);
+            }
+            if (!l->eof(l)) advance(l);
+          }
+        }
+        break;
+      }
+      case '{': {
+        depth++;
+        advance(l);
+        break;
+      }
+      case '}': {
+        if (depth == 0) {
+          l->mark_end(l);
+          return consumed;
+        }
+        depth--;
+        advance(l);
+        break;
+      }
+      default:
+        advance(l);
+        break;
+    }
+
+    prev_c = c;
+    consumed = true;
+    l->mark_end(l);
+  }
+  l->mark_end(l);
+  return consumed;
+}
+
 // Peek up to `maxn` chars from the lexer into buf[], stopping early if a '<'
 // is encountered (so the main loop can re-check it as a potential close tag).
 // Returns the number of chars placed in buf[].  All chars placed are already
@@ -395,6 +558,9 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
   }
   if (valid[GO_SPREAD_TEXT]) {
     if (scan_go_text_impl(l, false, true, true)) { l->result_symbol = GO_SPREAD_TEXT; return true; }
+  }
+  if (valid[STYLE_GO_TEXT]) {
+    if (scan_style_text(l)) { l->result_symbol = STYLE_GO_TEXT; return true; }
   }
   if (valid[RAW_TEXT]) {
     if (scan_raw_text(l)) { l->result_symbol = RAW_TEXT; return true; }

@@ -7,7 +7,8 @@ module.exports = grammar({
   //   go_cond_text   — Go text for control-flow condition (stops at depth-0 '{')
   //   go_interp_text — Go text inside interpolation { } (refuses if/for/switch)
   //   go_spread_text — Go text for spread/splat expr (refuses if/for/switch; stops at depth-0 '...')
-  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text],
+  //   style_go_text  — Go-ish text after a top-level css`...` in a style attr value
+  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
@@ -18,14 +19,17 @@ module.exports = grammar({
       'component',
       optional(field('receiver', $.receiver)),
       field('name', $.identifier),
+      optional(field('type_parameters', $.type_parameters)),
       field('parameters', $.parameter_list),
       field('body', $.body),
     ),
     receiver: $ => seq('(', optional($._paren_go), ')'),
     parameter_list: $ => seq('(', optional($._paren_go), ')'),
+    type_parameters: $ => seq('[', optional($._bracket_go), ']'),
     // Matches parameter/receiver content with one level of nested parens
     // (covers func types like `href func(int) string`, pointer receivers, etc.)
     _paren_go: $ => token(prec(-1, /([^()]*\([^()]*\))*[^()]*/)),
+    _bracket_go: $ => token(prec(-1, /([^\[\]]*\[[^\[\]]*\])*[^\[\]]*/)),
 
     body: $ => seq('{', repeat($._node), '}'),
     _node: $ => choice(
@@ -56,10 +60,11 @@ module.exports = grammar({
       $.self_closing_element,
       seq($.start_tag, repeat($._node), $.end_tag),
     ),
-    start_tag: $ => seq('<', field('name', $.tag_name), repeat($.attribute), '>'),
+    start_tag: $ => seq('<', field('name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '>'),
     end_tag: $ => seq('</', $.tag_name, '>'),
-    self_closing_element: $ => seq('<', field('name', $.tag_name), repeat($.attribute), '/>'),
+    self_closing_element: $ => seq('<', field('name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '/>'),
     tag_name: $ => /[A-Za-z][A-Za-z0-9.\-]*/,
+    type_arguments: $ => seq('[', optional($._bracket_go), ']'),
 
     // Interpolation: { expr } or { expr? } or { markup }
     // go_interp_text is used here (not go_text) so the scanner can refuse
@@ -114,6 +119,7 @@ module.exports = grammar({
 
     // Attributes (including conditional_attribute)
     attribute: $ => choice(
+      $.embedded_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
@@ -121,12 +127,40 @@ module.exports = grammar({
       $.conditional_attribute,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
+    embedded_attribute: $ => prec(1, seq(
+      $.attribute_name,
+      '=',
+      choice(
+        field('value', $.embedded_js_literal),
+        field('value', $.embedded_css_literal),
+        seq('{', field('value', $.embedded_js_literal), '}'),
+        seq('{', field('value', $.embedded_css_literal), '}'),
+      ),
+    )),
+    embedded_js_literal: $ => seq(
+      alias('js', $.embedded_language),
+      '`',
+      repeat(choice($.embedded_text, $.at_hole)),
+      '`',
+    ),
+    embedded_css_literal: $ => seq(
+      alias('css', $.embedded_language),
+      '`',
+      repeat(choice($.embedded_text, $.at_hole)),
+      '`',
+    ),
+    embedded_text: $ => token(prec(-1, repeat1(choice(/\\`/, /[^`@]+/)))),
+    css_composed_value: $ => seq(
+      optional($.go_interp_expr),
+      $.embedded_css_literal,
+      repeat(choice($.style_go_text, $.embedded_css_literal)),
+    ),
     // Attribute value: Go expression (pipeline), markup nodes, or a value-form
     // if/switch (value_control_flow).  _attr_hole_body extends _hole_body with
     // value_control_flow so that class={ if cond { "a" } else { "b" } } is parsed
     // structurally; it does NOT affect interpolation {} which keeps using _hole_body.
-    expr_attribute: $ => seq($.attribute_name, '=', '{', $._attr_hole_body, '}'),
-    _attr_hole_body: $ => choice($.value_control_flow, $._hole_body),
+    expr_attribute: $ => prec(-1, seq($.attribute_name, '=', '{', $._attr_hole_body, '}')),
+    _attr_hole_body: $ => choice($.value_control_flow, $.css_composed_value, $._hole_body),
     bool_attribute: $ => prec(-1, $.attribute_name),
     spread_attribute: $ => seq('{', $.go_spread_expr, '...', '}'),
     conditional_attribute: $ => seq(

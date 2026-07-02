@@ -24,6 +24,8 @@
 ; Attributes and strings
 (attribute_name) @attribute
 (quoted_string) @string
+(embedded_language) @keyword
+(embedded_text) @string.special
 
 ; Operators
 (pipe) @operator
