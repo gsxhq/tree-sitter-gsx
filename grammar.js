@@ -19,14 +19,17 @@ module.exports = grammar({
       'component',
       optional(field('receiver', $.receiver)),
       field('name', $.identifier),
+      optional(field('type_parameters', $.type_parameters)),
       field('parameters', $.parameter_list),
       field('body', $.body),
     ),
     receiver: $ => seq('(', optional($._paren_go), ')'),
     parameter_list: $ => seq('(', optional($._paren_go), ')'),
+    type_parameters: $ => seq('[', optional($._bracket_go), ']'),
     // Matches parameter/receiver content with one level of nested parens
     // (covers func types like `href func(int) string`, pointer receivers, etc.)
     _paren_go: $ => token(prec(-1, /([^()]*\([^()]*\))*[^()]*/)),
+    _bracket_go: $ => token(prec(-1, /([^\[\]]*\[[^\[\]]*\])*[^\[\]]*/)),
 
     body: $ => seq('{', repeat($._node), '}'),
     _node: $ => choice(
@@ -57,10 +60,11 @@ module.exports = grammar({
       $.self_closing_element,
       seq($.start_tag, repeat($._node), $.end_tag),
     ),
-    start_tag: $ => seq('<', field('name', $.tag_name), repeat($.attribute), '>'),
+    start_tag: $ => seq('<', field('name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '>'),
     end_tag: $ => seq('</', $.tag_name, '>'),
-    self_closing_element: $ => seq('<', field('name', $.tag_name), repeat($.attribute), '/>'),
+    self_closing_element: $ => seq('<', field('name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '/>'),
     tag_name: $ => /[A-Za-z][A-Za-z0-9.\-]*/,
+    type_arguments: $ => seq('[', optional($._bracket_go), ']'),
 
     // Interpolation: { expr } or { expr? } or { markup }
     // go_interp_text is used here (not go_text) so the scanner can refuse

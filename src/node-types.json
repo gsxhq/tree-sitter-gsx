@@ -209,6 +209,16 @@
             "named": true
           }
         ]
+      },
+      "type_parameters": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_parameters",
+            "named": true
+          }
+        ]
       }
     }
   },
@@ -810,6 +820,16 @@
             "named": true
           }
         ]
+      },
+      "type_arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_arguments",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
@@ -871,6 +891,16 @@
             "named": true
           }
         ]
+      },
+      "type_arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_arguments",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
@@ -902,6 +932,16 @@
         }
       ]
     }
+  },
+  {
+    "type": "type_arguments",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "type_parameters",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "value_control_flow",
@@ -996,6 +1036,14 @@
   },
   {
     "type": "@{",
+    "named": false
+  },
+  {
+    "type": "[",
+    "named": false
+  },
+  {
+    "type": "]",
     "named": false
   },
   {
