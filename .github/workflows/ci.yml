@@ -9,6 +9,8 @@ jobs:
         with: { node-version: 24 }
       - run: npm install
       - run: npx tree-sitter generate
+      - name: Generated parser is committed and up to date
+        run: git diff --exit-code -- src/
       - run: npx tree-sitter test
       - name: Parse examples (zero errors)
         run: for f in test/examples/*.gsx; do npx tree-sitter parse -q "$f"; done
