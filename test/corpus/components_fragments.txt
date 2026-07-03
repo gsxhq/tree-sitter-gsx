@@ -34,3 +34,62 @@ component C() {
             name: (tag_name))))))
   (go_chunk
     (go_text)))
+
+==================
+source comments: bare //, /* */, braced {/* */} and {// } in attrs; comment in cond-attr block; content {// }
+==================
+
+package p
+
+component C(on bool) {
+	<input
+		// bare line
+		type="checkbox"
+		/* bare block */
+		{/* braced */}
+		{ if on {
+			// in cond
+			checked
+		} }
+	/>
+	<p>{// content line
+	}x</p>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (line_comment)
+          (attribute
+            (static_attribute
+              (attribute_name)
+              (quoted_string)))
+          (block_comment)
+          (attribute
+            (content_comment))
+          (attribute
+            (conditional_attribute
+              (keyword)
+              (go_cond_text)
+              (line_comment)
+              (attribute
+                (bool_attribute
+                  (attribute_name)))))))
+      (element
+        (start_tag
+          name: (tag_name))
+        (content_comment)
+        (text)
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))

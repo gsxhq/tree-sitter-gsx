@@ -54,7 +54,12 @@ module.exports = grammar({
     at_hole: $ => seq('@{', $.go_expr, '}'),
     doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
     html_comment: $ => seq('<!--', /([^-]|-[^-]|--[^>])*/, '-->'),
-    content_comment: $ => seq('{/*', /([^*]|\*[^/])*/, '*/}'),
+    // Comment-only brace: block `{/* … */}` or line `{// … \n}`. Valid in both
+    // content and attribute position (see the `attribute` rule).
+    content_comment: $ => choice(
+      seq('{/*', /([^*]|\*[^/])*/, '*/}'),
+      seq(token(seq('{//', /[^\n]*/)), '}'),
+    ),
 
     element: $ => choice(
       $.self_closing_element,
@@ -125,6 +130,7 @@ module.exports = grammar({
       $.bool_attribute,
       $.spread_attribute,
       $.conditional_attribute,
+      $.content_comment,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
     embedded_attribute: $ => prec(1, seq(

@@ -31,6 +31,10 @@
           "named": true
         },
         {
+          "type": "content_comment",
+          "named": true
+        },
+        {
           "type": "embedded_attribute",
           "named": true
         },
