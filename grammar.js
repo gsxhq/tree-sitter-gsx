@@ -54,7 +54,10 @@ module.exports = grammar({
       repeat(choice($.raw_text, $.at_hole)),
       seq('</', alias(/[A-Za-z]+/, $.tag_name), '>'),
     ),
-    at_hole: $ => seq('@{', $.go_expr, '}'),
+    // @{ expr } hole. The expression may be a pipeline (`@{ id |> upper }`),
+    // valid in every literal context (js/css/script/style and plain
+    // interpolating attribute literals).
+    at_hole: $ => seq('@{', $.go_expr, repeat(seq($.pipe, $.go_expr)), '}'),
     doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
     html_comment: $ => seq('<!--', /([^-]|-[^-]|--[^>])*/, '-->'),
     // Comment-only brace: block `{/* … */}` or line `{// … \n}`. Valid in both
@@ -128,6 +131,7 @@ module.exports = grammar({
     // Attributes (including conditional_attribute)
     attribute: $ => choice(
       $.embedded_attribute,
+      $.interpolated_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
@@ -136,6 +140,16 @@ module.exports = grammar({
       $.content_comment,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
+    // Plain (non-JS, non-CSS) interpolating attribute literal:
+    //   name=`…static…@{ expr }…`
+    // Mixes literal text with typed, auto-escaped @{ } holes — no js/css keyword.
+    // Reuses the embedded_text scanner token (stops at a backtick or an '@{').
+    interpolated_attribute: $ => seq($.attribute_name, '=', field('value', $.interpolated_literal)),
+    interpolated_literal: $ => seq(
+      '`',
+      repeat(choice($.embedded_text, $.at_hole)),
+      '`',
+    ),
     embedded_attribute: $ => prec(1, seq(
       $.attribute_name,
       '=',

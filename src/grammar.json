@@ -361,6 +361,22 @@
           "name": "go_expr"
         },
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "pipe"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "go_expr"
+              }
+            ]
+          }
+        },
+        {
           "type": "STRING",
           "value": "}"
         }
@@ -840,6 +856,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "interpolated_attribute"
+        },
+        {
+          "type": "SYMBOL",
           "name": "static_attribute"
         },
         {
@@ -878,6 +898,56 @@
         {
           "type": "SYMBOL",
           "name": "quoted_string"
+        }
+      ]
+    },
+    "interpolated_attribute": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "attribute_name"
+        },
+        {
+          "type": "STRING",
+          "value": "="
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "SYMBOL",
+            "name": "interpolated_literal"
+          }
+        }
+      ]
+    },
+    "interpolated_literal": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "`"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "embedded_text"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "at_hole"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "`"
         }
       ]
     },
