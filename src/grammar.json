@@ -1037,29 +1037,6 @@
         }
       ]
     },
-    "embedded_text": {
-      "type": "TOKEN",
-      "content": {
-        "type": "PREC",
-        "value": -1,
-        "content": {
-          "type": "REPEAT1",
-          "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "PATTERN",
-                "value": "\\\\`"
-              },
-              {
-                "type": "PATTERN",
-                "value": "[^`@]+"
-              }
-            ]
-          }
-        }
-      }
-    },
     "css_composed_value": {
       "type": "SEQ",
       "members": [
@@ -1389,6 +1366,10 @@
     {
       "type": "SYMBOL",
       "name": "style_go_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "embedded_text"
     }
   ],
   "inline": [],

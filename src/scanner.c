@@ -10,6 +10,7 @@ enum TokenType {
   GO_INTERP_TEXT,
   GO_SPREAD_TEXT,
   STYLE_GO_TEXT,
+  EMBEDDED_TEXT,
 };
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
@@ -546,6 +547,45 @@ static bool scan_raw_text(TSLexer *l) {
   return consumed;
 }
 
+// Scan an embedded_text token: a run of literal text inside a js`...`/css`...`
+// value. Mirrors scan_raw_text, but the terminator is a backtick (the literal's
+// closing/opening delimiter) rather than a </script>/</style> close tag.
+//   • stops BEFORE a backtick (the '`' token closes the literal);
+//   • stops BEFORE an '@{' hole (at_hole matches it), but consumes a bare '@'
+//     that is not followed by '{' (e.g. '@member' in a JS string);
+//   • treats a backslash-escaped backtick ('\`') as ordinary text so it does not
+//     terminate the run.
+static bool scan_embedded_text(TSLexer *l) {
+  bool consumed = false;
+  while (!l->eof(l)) {
+    if (l->lookahead == '`') {
+      // Closing (or nested opening) backtick — end the run before it.
+      l->mark_end(l);
+      return consumed;
+    }
+    if (l->lookahead == '@') {
+      l->mark_end(l);
+      advance(l);
+      if (l->lookahead == '{') return consumed; // '@{' starts a hole
+      consumed = true;
+      continue;
+    }
+    if (l->lookahead == '\\') {
+      advance(l); // consume the backslash
+      // An escaped backtick is part of the text, not a delimiter.
+      if (!l->eof(l) && l->lookahead == '`') advance(l);
+      consumed = true;
+      l->mark_end(l);
+      continue;
+    }
+    advance(l);
+    consumed = true;
+    l->mark_end(l);
+  }
+  l->mark_end(l);
+  return consumed;
+}
+
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
   if (valid[PIPE]) {
     if (scan_pipe(l)) { l->result_symbol = PIPE; return true; }
@@ -564,6 +604,9 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
   }
   if (valid[RAW_TEXT]) {
     if (scan_raw_text(l)) { l->result_symbol = RAW_TEXT; return true; }
+  }
+  if (valid[EMBEDDED_TEXT]) {
+    if (scan_embedded_text(l)) { l->result_symbol = EMBEDDED_TEXT; return true; }
   }
   if (valid[GO_TEXT]) {
     if (scan_go_text_impl(l, false, false, false)) { l->result_symbol = GO_TEXT; return true; }

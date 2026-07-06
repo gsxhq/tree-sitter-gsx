@@ -8,7 +8,10 @@ module.exports = grammar({
   //   go_interp_text — Go text inside interpolation { } (refuses if/for/switch)
   //   go_spread_text — Go text for spread/splat expr (refuses if/for/switch; stops at depth-0 '...')
   //   style_go_text  — Go-ish text after a top-level css`...` in a style attr value
-  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text],
+  //   embedded_text  — text run inside js`...`/css`...` literals; stops at a backtick
+  //                    or an '@{' hole, but consumes a bare '@' (regex tokens cannot
+  //                    express that lookahead — see scan_embedded_text in scanner.c)
+  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text, $.embedded_text],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
@@ -155,7 +158,9 @@ module.exports = grammar({
       repeat(choice($.embedded_text, $.at_hole)),
       '`',
     ),
-    embedded_text: $ => token(prec(-1, repeat1(choice(/\\`/, /[^`@]+/)))),
+    // embedded_text is an external token (scan_embedded_text): a run of literal
+    // text inside a js`...`/css`...` value that ends at a backtick or an '@{' hole
+    // but freely contains a bare '@' (e.g. '@member' in a JS string).
     css_composed_value: $ => seq(
       optional($.go_interp_expr),
       $.embedded_css_literal,
