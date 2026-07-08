@@ -13,12 +13,21 @@ module.exports = grammar({
   //                    express that lookahead — see scan_embedded_text in scanner.c)
   //   embedded_text_dq — same, for the double-quote delimiter form (f"…"/js"…"/css"…");
   //                    stops at an unescaped '"' or an '@{' hole.
-  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text, $.embedded_text, $.embedded_text_dq],
+  //   go_top_text    — top-level Go text (go_chunk). Like go_text but does NOT stop
+  //                    at a depth-0 '}' (a top-level '}' closes a Go block), so
+  //                    embedded element/fragment values don't break brace balance.
+  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text, $.embedded_text, $.embedded_text_dq, $.go_top_text],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
     _top_level: $ => choice($.component_declaration, $.go_chunk),
-    go_chunk: $ => $.go_text,
+    // Top-level Go may embed element/fragment VALUES — the element-literals feature
+    // (var icon = <Icon/>, return <div/>, struct fields). The scanner stops go text
+    // before a markup '<' (stop_markup) so the element/fragment rule matches; each
+    // becomes its own go_chunk sibling and source_file's repeat sequences them
+    // (a single choice — not repeat1 — avoids adjacent-go_chunk ambiguity).
+    // go_top_text is aliased to go_text so the node name is unchanged.
+    go_chunk: $ => choice(alias($.go_top_text, $.go_text), $.element, $.fragment),
 
     component_declaration: $ => seq(
       'component',
@@ -109,8 +118,9 @@ module.exports = grammar({
     // depth-0 '...' (so the trailing spread token can be matched literally).
     go_spread_expr: $ => $.go_spread_text,
 
-    // go_block ({{ ... }}) for Go statements
-    go_block: $ => seq('{{', $.go_text, '}}'),
+    // go_block ({{ ... }}) for Go statements — may embed element/fragment values
+    // ({{ x := <div/> }}), same as top-level go_chunk.
+    go_block: $ => seq('{{', repeat(choice($.go_text, $.element, $.fragment)), '}}'),
 
     // control_flow: { if/for/switch cond { ... } }
     control_flow: $ => seq(

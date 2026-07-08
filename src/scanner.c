@@ -12,6 +12,7 @@ enum TokenType {
   STYLE_GO_TEXT,
   EMBEDDED_TEXT,
   EMBEDDED_TEXT_DQ,
+  GO_TOP_TEXT,
 };
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
@@ -41,6 +42,17 @@ static bool is_ident_char(int32_t c) {
 //   stop_spread_dots — stop at depth-0 '...' (go_spread_text mode), allowing
 //                      the grammar rule seq('{', go_spread_expr, '...', '}') to
 //                      match the trailing literal '...'.
+//   stop_markup      — stop before a markup-initiating '<' (a tag/fragment start)
+//                      so an element/fragment VALUE can be matched, then resume.
+//                      Set for GO_TOP_TEXT (top-level go_chunk), GO_TEXT ({{ }}
+//                      go_block), GO_INTERP_TEXT and GO_SPREAD_TEXT, but NOT
+//                      GO_COND_TEXT (conditions are pure Go: `if x < 3`).
+//   stop_close_brace — stop at a depth-0 '}' (the hole/block boundary in
+//                      @{ … } / {{ … }} / { … }). Cleared for GO_TOP_TEXT: at top
+//                      level a '}' closes a Go block (func body, composite literal)
+//                      and must be consumed — splitting go text at an embedded
+//                      element resets brace depth, so a trailing '}' would
+//                      otherwise be misread as a depth-0 boundary.
 //
 // Keyword-refusal with multi-char lookahead:
 //   TSLexer provides only one-char lookahead (l->lookahead).  To detect a
@@ -63,7 +75,7 @@ static bool is_ident_char(int32_t c) {
 
 #define PEEK_BUF_CAP 16
 
-static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords, bool stop_spread_dots) {
+static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keywords, bool stop_spread_dots, bool stop_markup, bool stop_close_brace) {
   int32_t peek[PEEK_BUF_CAP];
   int     peek_len = 0;
 
@@ -365,19 +377,24 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
         break;
       }
       case '}': {
-        if (depth == 0) { l->mark_end(l); return consumed; }
+        if (depth == 0) {
+          if (stop_close_brace) { l->mark_end(l); return consumed; }
+          ADV();  // top level: '}' closes a Go block — consume it, stay at depth 0
+          break;
+        }
         depth--; ADV();
         break;
       }
       case '<': {
-        // Mid-expression markup: a '<' beginning a tag (<letter) or fragment (<>)
-        // inside a Go interpolation is an embedded element/fragment VALUE — e.g.
-        // { wrap(<div/>) }, { cond ? <a/> : <b/> }. Stop go_interp_text here so the
-        // element/fragment rule matches, then resume. Only in interp/spread mode
-        // (refuse_keywords) and only from the live lexer. gofmt spaces a binary
-        // '<' ('a < b'), so '<' immediately followed by a letter or '>' is markup,
-        // while '<-' (receive), '<<' (shift), '< ' (compare) stay Go.
-        if (refuse_keywords && peek_pos >= peek_len) {
+        // A '<' beginning a tag (<letter) or fragment (<>) is an embedded
+        // element/fragment VALUE — e.g. { wrap(<div/>) } in a hole, or
+        // `var icon = <Icon/>` at top level. Stop the go text here so the
+        // element/fragment rule matches, then resume. Enabled by stop_markup (all
+        // Go-text contexts except control-flow conditions) and only from the live
+        // lexer. gofmt spaces a binary '<' ('a < b'), so '<' immediately followed
+        // by a letter or '>' is markup, while '<-' (receive), '<<' (shift), '< '
+        // (compare) stay Go.
+        if (stop_markup && peek_pos >= peek_len) {
           l->mark_end(l);   // candidate end: just before '<'
           advance(l);       // consume '<' speculatively
           int32_t n = l->lookahead;
@@ -675,13 +692,14 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
     if (scan_pipe(l)) { l->result_symbol = PIPE; return true; }
   }
   if (valid[GO_COND_TEXT]) {
-    if (scan_go_text_impl(l, true, false, false)) { l->result_symbol = GO_COND_TEXT; return true; }
+    // No stop_markup: `if x < 3 { … }` — the condition is pure Go.
+    if (scan_go_text_impl(l, true, false, false, false, true)) { l->result_symbol = GO_COND_TEXT; return true; }
   }
   if (valid[GO_INTERP_TEXT]) {
-    if (scan_go_text_impl(l, false, true, false)) { l->result_symbol = GO_INTERP_TEXT; return true; }
+    if (scan_go_text_impl(l, false, true, false, true, true)) { l->result_symbol = GO_INTERP_TEXT; return true; }
   }
   if (valid[GO_SPREAD_TEXT]) {
-    if (scan_go_text_impl(l, false, true, true)) { l->result_symbol = GO_SPREAD_TEXT; return true; }
+    if (scan_go_text_impl(l, false, true, true, true, true)) { l->result_symbol = GO_SPREAD_TEXT; return true; }
   }
   if (valid[STYLE_GO_TEXT]) {
     if (scan_style_text(l)) { l->result_symbol = STYLE_GO_TEXT; return true; }
@@ -695,8 +713,15 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
   if (valid[EMBEDDED_TEXT_DQ]) {
     if (scan_embedded_text_dq(l)) { l->result_symbol = EMBEDDED_TEXT_DQ; return true; }
   }
+  if (valid[GO_TOP_TEXT]) {
+    // Top-level go_chunk: stop at markup, but DON'T stop at a depth-0 '}' — it
+    // closes a Go block (func body, composite literal) — `var icon = <Icon/>`,
+    // `func f() gsx.Node { return <div/> }`.
+    if (scan_go_text_impl(l, false, false, false, true, false)) { l->result_symbol = GO_TOP_TEXT; return true; }
+  }
   if (valid[GO_TEXT]) {
-    if (scan_go_text_impl(l, false, false, false)) { l->result_symbol = GO_TEXT; return true; }
+    // {{ }} go_block and @{ } holes: stop at markup and at the closing '}'/'}}'.
+    if (scan_go_text_impl(l, false, false, false, true, true)) { l->result_symbol = GO_TEXT; return true; }
   }
   return false;
 }

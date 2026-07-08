@@ -64,3 +64,44 @@ component B() {}
     body: (body))
   (go_chunk
     (go_text)))
+
+==================
+element/fragment literals in top-level Go and {{ }} go_block
+==================
+
+package demo
+
+var icon = <Icon/>
+
+component C() {
+	{{ node := <div/> }}
+	{ icon }
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (go_chunk
+    (element
+      (self_closing_element
+        name: (tag_name))))
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (go_block
+        (go_text)
+        (element
+          (self_closing_element
+            name: (tag_name)))
+        (go_text))
+      (interpolation
+        (pipeline
+          (go_interp_expr
+            (go_interp_text))))))
+  (go_chunk
+    (go_text)))

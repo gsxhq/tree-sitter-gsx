@@ -1,5 +1,11 @@
 package examples
 
+// Element/fragment literals are Go values in top-level Go and func bodies too
+// (the element-literals feature), not just inside { }.
+var defaultIcon = <span class="icon"/>
+
+func fallback() gsx.Node { return <>—</> }
+
 // Interpolation is opt-in behind an f/js/css prefix. A bare `…` / "…" is a plain
 // Go string with no @{ } holes; only a prefixed literal interpolates.
 component Showcase(variant string, count int, url string) {
