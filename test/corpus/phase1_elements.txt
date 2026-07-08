@@ -49,7 +49,7 @@ func f() {
             value: (expression_list
               (element
                 open_name: (identifier)
-                body: (element_text)
+                (text)
                 close_name: (identifier)))))))))
 
 ==================
@@ -76,7 +76,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (fragment
-                body: (element_text)))))))))
+                (text)))))))))
 
 ==================
 element self-closing as a return value
@@ -131,7 +131,7 @@ func render() gsx.Node {
           (expression_list
             (element
               open_name: (identifier)
-              body: (element_text)
+              (text)
               close_name: (identifier))))))))
 
 ==================

@@ -34,3 +34,30 @@ deciding early in Phase 2 rather than rediscovering:
 - **Whitespace after `<`** (`< Icon/>`) is accepted as markup — harmless in
   Phase 1 (no real Go expression starts with a prefix `<`), but looser than
   JSX-style adjacency if that's wanted later.
+
+## Phase 2a notes (element children)
+
+- `element`/`fragment` bodies are now `repeat($._child)` (`_child` =
+  element/fragment/hole/control_flow/text) instead of Phase 1's flat
+  `element_text` — the old grammar's separate `_hole_body:
+  choice($.pipeline, repeat1($._node))` machinery is not needed: every
+  real standalone-hole usage in the legacy corpus/examples is a single
+  node, and elements/fragments are already Go `_expression`s (Phase 1),
+  so `hole: '{' _expression '}'` covers it.
+- `for` loops needed Go's own `for_clause`/`range_clause` rules reused
+  verbatim for the condition (`_, it := range items` isn't a valid Go
+  `_expression` on its own) — `if`/`switch` conditions are plain
+  `_expression`. Found by testing, not assumed.
+- `switch`'s `case`/`default` clauses are **not** parsed as real Go
+  switch-clause structure — they fall through to `text`, same as the
+  pre-existing shipped (blob-model) grammar's own
+  `test/corpus-legacy-blob-model/control_flow.txt` (`switch v { case "a":
+  }` → `(block (text))` there too). Confirmed parity, not a regression,
+  by checking the old grammar's own corpus before assuming either way.
+- Still no external scanner: `text: token(prec(-1, /[^<{]+/))` is a plain
+  regex token.
+- Deferred (see the Phase 2a spec for the full list): attributes (2b),
+  `f`/`js`/`css` literals (2c), `component` declarations (2d), `doctype`/
+  `html_comment`/`content_comment`/`raw_element` (`raw_element` likely
+  needs the first real external scanner of Phase 2), the `\|>` pipeline
+  operator inside holes, `value_control_flow`.

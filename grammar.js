@@ -40,7 +40,7 @@ module.exports = grammar(goGrammar, {
       seq('<', field('name', $.identifier), '/>'),
       seq(
         '<', field('open_name', $.identifier), '>',
-        optional(field('body', $.element_text)),
+        repeat($._child),
         '</', field('close_name', $.identifier), '>',
       ),
     ),
@@ -51,10 +51,45 @@ module.exports = grammar(goGrammar, {
     // choosing fragment.
     fragment: $ => seq(
       token(seq('<', '>')),
-      optional(field('body', $.element_text)),
+      repeat($._child),
       token(seq('<', '/', '>')),
     ),
 
-    element_text: $ => token(prec(-1, /[^<]+/)),
+    _child: $ => choice(
+      $.element,
+      $.fragment,
+      $.hole,
+      $.control_flow,
+      $.text,
+    ),
+
+    // Hole body is a real Go expression — element/fragment already
+    // included via _expression (Phase 1). No separate node-sequence
+    // alternative: every real standalone-hole usage in the legacy corpus
+    // is a single node, and elements are already Go expressions.
+    hole: $ => seq('{', $._expression, '}'),
+
+    // Condition reuses Go's own for_statement condition shape (plain
+    // expr, or a real for_clause/range_clause for `for`) — inherited
+    // from the base grammar unmodified, not reimplemented. The block
+    // body is markup children, not Go statements, so control_flow can't
+    // reuse Go's native if_statement/for_statement wholesale (their
+    // block holds $._statement).
+    control_flow: $ => seq(
+      '{',
+      alias(choice('if', 'for', 'switch'), $.keyword),
+      field('condition', choice($._expression, $.for_clause, $.range_clause)),
+      '{', repeat($._child), '}',
+      repeat($.else_clause),
+      '}',
+    ),
+
+    else_clause: $ => seq(
+      alias('else', $.keyword),
+      optional(seq(alias('if', $.keyword), field('condition', $._expression))),
+      '{', repeat($._child), '}',
+    ),
+
+    text: $ => token(prec(-1, /[^<{]+/)),
   },
 });
