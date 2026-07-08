@@ -152,3 +152,35 @@ deciding early in Phase 2 rather than rediscovering:
 - Deferred (see the Phase 2c spec for the full list): `css_composed_value`,
   `value_control_flow`, `component` declarations (2d), pipe chains in
   plain `{ }` holes (still 2a/2b's existing deferral).
+
+## Backlog: scanner escape-fidelity gap vs. the real gsx parser (not a 2d prerequisite)
+
+Found by this branch's own adversarial review, **not introduced by any
+phase on this branch** — the lifted `scan_embedded_text`/
+`scan_embedded_text_dq` are byte-faithful to the *currently-shipped*
+scanner, which itself was already not fully faithful to the real gsx
+compiler's escape rules (`parser/attrs.go` in the `gsx` repo) on two
+edges:
+
+- **`\@{` inside a literal is misparsed as a hole (Important — silent
+  misparse, not a visible `ERROR`).** The real parser's
+  `embeddedAtBraceEscaped` (`parser/attrs.go:605`) treats `\@{` as a
+  literal `@{`, no hole. The scanner has no `\@` handling at all, so
+  `` f`lit \@{x} end` `` produces an `at_hole` where real gsx sees text.
+  Fix: when the scanner's backslash branch sees `\@`, consume the `@` so
+  it can't open a hole (mirroring the real parser's parity logic).
+- **Backslash-parity before a delimiter is unhandled (Minor — fails
+  safely as a visible `ERROR`, but rejects valid gsx).** The real
+  parser's `embeddedDelimEscaped` (`parser/attrs.go:594`) counts
+  preceding backslashes and only treats the delimiter as escaped on an
+  *odd* count, so `` f`a\\` `` (even = 2) should terminate with text
+  `a\\`. The scanner has no parity counting — it always treats a
+  backslash-then-delimiter as escaped, so this input runs away to `EOF`
+  and `ERROR`s instead of parsing.
+
+Both are pre-existing (present in the currently-shipped grammar too) and
+don't touch the surface any Phase 2 sub-phase builds on — independent of
+the phase sequence, not a blocker for 2d. Fix in a dedicated pass, with
+new corpus cases pinning both the fix and the already-working basic
+escape case (`` f`a \`esc\` b` ``, verified working but not yet pinned in
+`test/corpus/phase2c_literals.txt`).
