@@ -61,3 +61,17 @@ deciding early in Phase 2 rather than rediscovering:
   `html_comment`/`content_comment`/`raw_element` (`raw_element` likely
   needs the first real external scanner of Phase 2), the `\|>` pipeline
   operator inside holes, `value_control_flow`.
+- `text` now also excludes `}` (`/[^<{}]+/`, not just `/[^<{]+/`) — without
+  it, a control-flow block whose last child is plain text let `text`
+  swallow the block's own closing `}`, desyncing the parse (found by
+  adversarial review, not the corpus, since every corpus `control_flow`
+  case happened to be element-terminated). This matches the pre-existing
+  shipped grammar's own text token (`/[^<{}>]+/`) more closely. Accepted
+  tradeoff: a bare `}` inside plain element text now ERRORs where it
+  previously parsed by accident — the old grammar has this same
+  limitation, so it's not a new regression.
+- `switch` with an init-clause (`switch x := f(); x { ... }`) ERRORs —
+  `control_flow`'s shared `condition: choice($._expression, $.for_clause,
+  $.range_clause)` doesn't cover Go's switch-with-initializer condition
+  shape. Localized, non-cascading `ERROR`, deferred rather than silently
+  accepted as correct.

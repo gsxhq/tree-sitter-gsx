@@ -90,6 +90,6 @@ module.exports = grammar(goGrammar, {
       '{', repeat($._child), '}',
     ),
 
-    text: $ => token(prec(-1, /[^<{]+/)),
+    text: $ => token(prec(-1, /[^<{}]+/)),
   },
 });

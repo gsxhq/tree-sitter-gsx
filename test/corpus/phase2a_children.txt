@@ -365,3 +365,37 @@ func f() {
                   (element
                     name: (identifier)))
                 close_name: (identifier)))))))))
+
+==================
+if-else control-flow with plain-text bodies (no trailing element/hole)
+==================
+
+package main
+func f() {
+	var x = <div>{ if loggedIn { Welcome } else { Please log in } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (identifier)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (text)
+                  (else_clause
+                    (keyword)
+                    (text)))
+                close_name: (identifier)))))))))
