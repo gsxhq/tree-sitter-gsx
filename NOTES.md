@@ -75,3 +75,34 @@ deciding early in Phase 2 rather than rediscovering:
   $.range_clause)` doesn't cover Go's switch-with-initializer condition
   shape. Localized, non-cascading `ERROR`, deferred rather than silently
   accepted as correct.
+
+## Phase 2b notes (attributes)
+
+- `element` gained a real attribute list: `static_attribute` (reuses
+  Go's own `_string_literal` — dropped the old grammar's custom
+  single-quote-supporting `quoted_string`; confirmed via grep across the
+  full legacy corpus and all 13 example `.gsx` files that single-quoted
+  attribute values were never actually used), `expr_attribute` (reuses
+  2a's `hole` unchanged — `name={ expr }`), `bool_attribute`,
+  `spread_attribute` (`{ expr... }`), and `conditional_attribute`
+  (`if`/`for`+optional `else`, reusing the same `for_clause`/
+  `range_clause` condition-clause approach as 2a's `control_flow`, but
+  wrapping a repeated attribute list instead of a repeated child list).
+- Key disambiguation verified by inspecting the actual tree, not just
+  absence of an `ERROR`: a variadic Go call inside an `expr_attribute`'s
+  hole (`data={fn(args...)}`) correctly parses as
+  `hole(call_expression(argument_list(variadic_argument)))`, not confused
+  with `spread_attribute`'s own top-level `{ expr... }` shape, even
+  though both involve `...`.
+- `content_comment` (inline attribute comments, e.g. `<div /* note */
+  class="x">`) is deferred alongside its child-position form from 2a —
+  one rule, implemented once later, not split across two sub-phases.
+- `conditional_attribute` supports `if`/`for` only (no `switch`) —
+  matches the old grammar's own scope, not a new limitation.
+- Still no external scanner.
+- Deferred (see the Phase 2b spec for the full list): `f`/`js`/`css`
+  literal attribute values (2c), `css_composed_value`,
+  `value_control_flow` (if/switch as an attribute *value* — distinct from
+  `conditional_attribute`, which wraps whole attributes), `component`
+  declarations (2d), the `\|>` pipeline operator inside holes (inherited
+  from 2a, `expr_attribute` reuses `hole` as-is).

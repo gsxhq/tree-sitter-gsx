@@ -37,12 +37,46 @@ module.exports = grammar(goGrammar, {
     ),
 
     element: $ => choice(
-      seq('<', field('name', $.identifier), '/>'),
+      seq('<', field('name', $.identifier), repeat($.attribute), '/>'),
       seq(
-        '<', field('open_name', $.identifier), '>',
+        '<', field('open_name', $.identifier), repeat($.attribute), '>',
         repeat($._child),
         '</', field('close_name', $.identifier), '>',
       ),
+    ),
+
+    attribute: $ => choice(
+      $.static_attribute,
+      $.expr_attribute,
+      $.bool_attribute,
+      $.spread_attribute,
+      $.conditional_attribute,
+    ),
+
+    attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
+
+    static_attribute: $ => seq(field('name', $.attribute_name), '=', field('value', $._string_literal)),
+
+    // Reuses 2a's `hole` rule directly for the value — name={ expr }.
+    expr_attribute: $ => prec(-1, seq(field('name', $.attribute_name), '=', field('value', $.hole))),
+
+    bool_attribute: $ => prec(-1, field('name', $.attribute_name)),
+
+    spread_attribute: $ => seq('{', field('value', $._expression), '...', '}'),
+
+    // Condition shape mirrors 2a's control_flow (reuses Go's own for_clause/
+    // range_clause, not reimplemented), applied to a repeated ATTRIBUTE list
+    // instead of a repeated CHILD list.
+    conditional_attribute: $ => seq(
+      '{',
+      alias(choice('if', 'for'), $.keyword),
+      field('condition', choice($._expression, $.for_clause, $.range_clause)),
+      '{', repeat($.attribute), '}',
+      optional(seq(
+        alias('else', $.keyword),
+        '{', repeat($.attribute), '}',
+      )),
+      '}',
     ),
 
     // '<>'/'</>' as single atomic tokens (not seq('<', '>')) — matters:
