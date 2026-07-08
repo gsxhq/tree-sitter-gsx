@@ -97,8 +97,20 @@ deciding early in Phase 2 rather than rediscovering:
 - `content_comment` (inline attribute comments, e.g. `<div /* note */
   class="x">`) is deferred alongside its child-position form from 2a —
   one rule, implemented once later, not split across two sub-phases.
+- `conditional_attribute` now supports `else if`/multi-`else` chains via
+  a new `attribute_else_clause` rule, mirroring 2a's `else_clause`
+  (`repeat($.attribute_else_clause)` instead of a single `optional`
+  else) — fixes a real gap vs. the old grammar (which only had a single
+  optional else on attributes) that the canonical gsx corpus actually
+  exercises (`internal/corpus/testdata/cases/attrs/cond_attr_else_if_two.txtar`,
+  `cases/fallthrough/cond_attr_else_if_override.txtar`). Found by this
+  branch's own adversarial review process, not by the original corpus.
 - `conditional_attribute` supports `if`/`for` only (no `switch`) —
-  matches the old grammar's own scope, not a new limitation.
+  matches the old grammar's own scope, not a new limitation. That
+  reasoning applies to the missing `switch` support specifically, not to
+  the else-chain gap above: the old grammar's attribute conditional was
+  also single-else-only, so `else if`/multi-`else` chaining is a genuine
+  improvement beyond old-grammar parity, not just matching prior scope.
 - Still no external scanner.
 - Deferred (see the Phase 2b spec for the full list): `f`/`js`/`css`
   literal attribute values (2c), `css_composed_value`,

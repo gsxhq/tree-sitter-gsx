@@ -72,11 +72,14 @@ module.exports = grammar(goGrammar, {
       alias(choice('if', 'for'), $.keyword),
       field('condition', choice($._expression, $.for_clause, $.range_clause)),
       '{', repeat($.attribute), '}',
-      optional(seq(
-        alias('else', $.keyword),
-        '{', repeat($.attribute), '}',
-      )),
+      repeat($.attribute_else_clause),
       '}',
+    ),
+
+    attribute_else_clause: $ => seq(
+      alias('else', $.keyword),
+      optional(seq(alias('if', $.keyword), field('condition', $._expression))),
+      '{', repeat($.attribute), '}',
     ),
 
     // '<>'/'</>' as single atomic tokens (not seq('<', '>')) — matters:

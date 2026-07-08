@@ -107,12 +107,13 @@ func f() {
                         name: (attribute_name)
                         value: (interpreted_string_literal
                           (interpreted_string_literal_content))))
-                    (keyword)
-                    (attribute
-                      (static_attribute
-                        name: (attribute_name)
-                        value: (interpreted_string_literal
-                          (interpreted_string_literal_content))))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))
                 (text)
                 close_name: (identifier)))))))))
 
@@ -341,3 +342,126 @@ func f() {
                     (attribute
                       (bool_attribute
                         name: (attribute_name)))))))))))))
+
+==================
+conditional attribute with an else-if chain (matches the canonical gsx corpus's cond_attr_else_if_two.txtar)
+==================
+
+package main
+func f() {
+	var x = <div {if n == 1 { class="one" } else if n == 2 { class="two" } else { class="other" }}>z</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (identifier)
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (binary_expression
+                      left: (identifier)
+                      right: (int_literal))
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))
+                (text)
+                close_name: (identifier)))))))))
+
+==================
+conditional attribute with a three-branch else-if chain
+==================
+
+package main
+func f() {
+	var x = <div {if n == 1 { class="one" } else if n == 2 { class="two" } else if n == 3 { class="three" } else { class="other" }}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (identifier)
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (binary_expression
+                      left: (identifier)
+                      right: (int_literal))
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))))))))))
