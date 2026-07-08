@@ -199,9 +199,16 @@ plain regex token, no external scanner.
 - New `test/corpus/*.txt` coverage (or an addition to
   `test/corpus/phase1_elements.txt`'s file, controller's call at plan
   time) for all 10 verified cases, plus:
-  - A regression case confirming Phase 1's existing 13 cases still pass
-    unmodified (children are additive to `element`/`fragment`, not a
-    breaking change to the self-closing form).
+  - Phase 1's existing 13 cases must still parse with zero `ERROR` nodes
+    (verified: they do) — but 3 of them (the flat-text open/close and
+    fragment cases) legitimately change *tree shape*: Phase 1's dedicated
+    `body: (element_text)` field is subsumed by the general
+    `repeat($._child)` model, so plain text becomes a bare `(text)` child
+    with no `body:` field wrapper. Content and parsing are unaffected;
+    only the expected S-expression in the corpus file needs regenerating
+    (`tree-sitter test --file-name phase1_elements.txt --update`). This is
+    not a regression — verified by diffing exactly what `--update` changes
+    before accepting it, same discipline as everywhere else in this spec.
   - `switch` control-flow (only `if`/`for` were hand-verified above;
     `switch`'s condition is a plain `_expression` per the shared
     `control_flow` rule, so it's expected to work identically to `if`,
@@ -219,7 +226,9 @@ plain regex token, no external scanner.
 1. `element`/`fragment` bodies support `repeat($._child)`: text, nested
    elements/fragments, holes, and `if`/`for`/`switch`(+`else`) control-flow,
    all with zero `ERROR` nodes on the corpus.
-2. Phase 1's existing 13 corpus cases still pass unmodified.
+2. Phase 1's existing 13 corpus cases still parse with zero `ERROR`
+   nodes; 3 have their expected tree regenerated (not their input) to
+   match the new children-based shape — see Testing strategy.
 3. `tree-sitter generate`: zero unresolved conflicts. `tree-sitter test`:
    clean exit, full corpus passing.
 4. Verified from a fresh clone.
