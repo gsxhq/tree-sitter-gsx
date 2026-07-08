@@ -13,4 +13,11 @@ jobs:
         run: git diff --exit-code -- src/
       - run: npx tree-sitter test
       - name: Parse examples (zero errors)
-        run: for f in test/examples/*.gsx; do npx tree-sitter parse -q "$f"; done
+        run: |
+          shopt -s nullglob
+          examples=(test/examples/*.gsx)
+          if [ ${#examples[@]} -eq 0 ]; then
+            echo "no test/examples/*.gsx yet (expected on unified-go-grammar Phase 1 — see docs/superpowers/specs/2026-07-08-unified-go-grammar-phase1-design.md)"
+            exit 0
+          fi
+          for f in "${examples[@]}"; do npx tree-sitter parse -q "$f"; done
