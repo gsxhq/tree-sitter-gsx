@@ -286,13 +286,13 @@ component Page(p Props) {
     (go_text)))
 
 ==================
-plain interpolating attribute literals (@{ } holes, no js/css keyword)
+f-prefixed interpolating attribute literals (@{ } holes)
 ==================
 
 component B(variant string, n int) {
-  <span class=`badge badge-@{variant} n-@{n}`>Hi</span>
-  <a :class=`@{gsx.RawJS("hello")}`>x</a>
-  <span title=`Item @{ id |> upper }`>y</span>
+  <span class=f`badge badge-@{variant} n-@{n}`>Hi</span>
+  <a :class=f`@{gsx.RawJS("hello")}`>x</a>
+  <span title=f`Item @{ id |> upper }`>y</span>
 }
 
 ---
@@ -308,9 +308,10 @@ component B(variant string, n int) {
         (start_tag
           name: (tag_name)
           (attribute
-            (interpolated_attribute
+            (embedded_attribute
               (attribute_name)
-              value: (interpolated_literal
+              value: (embedded_f_literal
+                (embedded_language)
                 (embedded_text)
                 (at_hole
                   (go_expr
@@ -326,9 +327,10 @@ component B(variant string, n int) {
         (start_tag
           name: (tag_name)
           (attribute
-            (interpolated_attribute
+            (embedded_attribute
               (attribute_name)
-              value: (interpolated_literal
+              value: (embedded_f_literal
+                (embedded_language)
                 (at_hole
                   (go_expr
                     (go_text)))))))
@@ -339,9 +341,10 @@ component B(variant string, n int) {
         (start_tag
           name: (tag_name)
           (attribute
-            (interpolated_attribute
+            (embedded_attribute
               (attribute_name)
-              value: (interpolated_literal
+              value: (embedded_f_literal
+                (embedded_language)
                 (embedded_text)
                 (at_hole
                   (go_expr
@@ -352,5 +355,215 @@ component B(variant string, n int) {
         (text)
         (end_tag
           (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+bare backtick/quote attribute value is a plain string (no interpolation)
+==================
+
+component B(x string) {
+  <span class=`plain @{not-a-hole}`>Hi</span>
+  <span data="also @{plain}"/>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (static_attribute
+              (attribute_name)
+              (quoted_string))))
+        (text)
+        (end_tag
+          (tag_name)))
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (static_attribute
+              (attribute_name)
+              (quoted_string)))))))
+  (go_chunk
+    (go_text)))
+
+==================
+double-quote embedded literals (f"…" / js"…")
+==================
+
+component B(variant string, id string) {
+  <span class=f"badge-@{variant}">Hi</span>
+  <button @click=js"toggle(@{id})"/>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (embedded_attribute
+              (attribute_name)
+              value: (embedded_f_literal
+                (embedded_language)
+                (embedded_text_dq)
+                (at_hole
+                  (go_expr
+                    (go_text)))))))
+        (text)
+        (end_tag
+          (tag_name)))
+      (element
+        (self_closing_element
+          name: (tag_name)
+          (attribute
+            (embedded_attribute
+              (attribute_name)
+              value: (embedded_js_literal
+                (embedded_language)
+                (embedded_text_dq)
+                (at_hole
+                  (go_expr
+                    (go_text)))
+                (embedded_text_dq))))))))
+  (go_chunk
+    (go_text)))
+
+==================
+f literal as a hole value
+==================
+
+component B(name string) {
+  { f`hi @{name}` }
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (interpolation
+        (embedded_f_literal
+          (embedded_language)
+          (embedded_text)
+          (at_hole
+            (go_expr
+              (go_text)))))))
+  (go_chunk
+    (go_text)))
+
+==================
+element/fragment values mid-expression inside a hole
+==================
+
+component B() {
+  <div>{ wrap(<span/>) }</div>
+  <div>{ join(<a/>, <b/>) }</div>
+  <div>{ items(<>x</>) }</div>
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text)
+              (element
+                (self_closing_element
+                  name: (tag_name)))
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text)
+              (element
+                (self_closing_element
+                  name: (tag_name)))
+              (go_interp_text)
+              (element
+                (self_closing_element
+                  name: (tag_name)))
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          (pipeline
+            (go_interp_expr
+              (go_interp_text)
+              (fragment
+                (text))
+              (go_interp_text))))
+        (end_tag
+          (tag_name)))))
+  (go_chunk
+    (go_text)))
+
+==================
+f-literal value mid-expression inside a hole
+==================
+
+component B(x int) {
+  { emphasize(f`hi @{x}!`) }
+}
+
+---
+
+(source_file
+  (go_chunk
+    (go_text))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (body
+      (interpolation
+        (pipeline
+          (go_interp_expr
+            (go_interp_text)
+            (embedded_f_literal
+              (embedded_language)
+              (embedded_text)
+              (at_hole
+                (go_expr
+                  (go_text)))
+              (embedded_text))
+            (go_interp_text))))))
   (go_chunk
     (go_text)))

@@ -11,6 +11,7 @@ enum TokenType {
   GO_SPREAD_TEXT,
   STYLE_GO_TEXT,
   EMBEDDED_TEXT,
+  EMBEDDED_TEXT_DQ,
 };
 
 void *tree_sitter_gsx_external_scanner_create(void) { return NULL; }
@@ -74,16 +75,21 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     }
     if (l->eof(l)) return false;  // nothing to emit
 
-    // In attribute values, {js`...`} and {css`...`} are explicit embedded
-    // language literals, not Go expressions. Refuse here so the internal
-    // embedded_attribute rule can match them.
-    if (l->lookahead == 'j') {
+    // Interpolation is opt-in behind an f/js/css prefix immediately followed by a
+    // delimiter (` or "). f`…`/f"…" is a leading hole value; js`…`/css`…` (and the
+    // double-quote forms) are explicit embedded literals, not Go expressions.
+    // Refuse here so the internal embedded_f_literal / embedded_attribute rule wins.
+    if (l->lookahead == 'f') {
+      peek[peek_len++] = 'f';
+      advance(l);
+      if (l->lookahead == '`' || l->lookahead == '"') return false;
+    } else if (l->lookahead == 'j') {
       peek[peek_len++] = 'j';
       advance(l);
       if (l->lookahead == 's') {
         peek[peek_len++] = 's';
         advance(l);
-        if (l->lookahead == '`') return false;
+        if (l->lookahead == '`' || l->lookahead == '"') return false;
       }
     } else if (l->lookahead == 'c') {
       peek[peek_len++] = 'c';
@@ -94,7 +100,7 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
         if (l->lookahead == 's') {
           peek[peek_len++] = 's';
           advance(l);
-          if (l->lookahead == '`') return false;
+          if (l->lookahead == '`' || l->lookahead == '"') return false;
         }
       }
     }
@@ -104,8 +110,10 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     //   - '<' followed by '>'      → fragment <>
     // In those cases, refuse so the markup alternative in _hole_body wins.
     // But '<' followed by '-' (channel receive <-ch) or anything else is
-    // valid Go and should be scanned normally.
-    if (l->lookahead == '<') {
+    // valid Go and should be scanned normally. Guarded by peek_len == 0 so this
+    // only fires for a truly leading '<' — after an f/js/css prefix letter was
+    // pushed above, a following '<' is Go (comparison/shift), never markup.
+    if (peek_len == 0 && l->lookahead == '<') {
       advance(l);  // consume '<' speculatively
       int32_t next = l->lookahead;
       bool is_markup = (next == '>' ||
@@ -212,6 +220,24 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
     }
 
     switch (c) {
+      // Mid-expression f-literal VALUE: stop go_interp_text before an f`/f" prefix
+      // (at a left word boundary, depth 0) so embedded_f_literal matches, then
+      // resume — { emphasize(f`@{x}!`) }. Mirrors the leading-prefix refusal at the
+      // top of this function. (js/css are not standalone values; css's mid-expr
+      // stop below is reserved for css_composed_value in style attributes.)
+      case 'f': {
+        if (refuse_keywords && depth == 0 && !is_ident_char(prev_c) && peek_pos >= peek_len) {
+          l->mark_end(l);   // candidate end: before 'f'
+          advance(l);
+          if (l->lookahead == '`' || l->lookahead == '"') return consumed;
+          consumed = true;
+          l->mark_end(l);
+          prev_c = 'f';
+          continue;
+        }
+        ADV();
+        break;
+      }
       case 'c': {
         if (refuse_keywords && depth == 0 && !is_ident_char(prev_c) && peek_pos >= peek_len) {
           l->mark_end(l);
@@ -341,6 +367,29 @@ static bool scan_go_text_impl(TSLexer *l, bool stop_open_brace, bool refuse_keyw
       case '}': {
         if (depth == 0) { l->mark_end(l); return consumed; }
         depth--; ADV();
+        break;
+      }
+      case '<': {
+        // Mid-expression markup: a '<' beginning a tag (<letter) or fragment (<>)
+        // inside a Go interpolation is an embedded element/fragment VALUE — e.g.
+        // { wrap(<div/>) }, { cond ? <a/> : <b/> }. Stop go_interp_text here so the
+        // element/fragment rule matches, then resume. Only in interp/spread mode
+        // (refuse_keywords) and only from the live lexer. gofmt spaces a binary
+        // '<' ('a < b'), so '<' immediately followed by a letter or '>' is markup,
+        // while '<-' (receive), '<<' (shift), '< ' (compare) stay Go.
+        if (refuse_keywords && peek_pos >= peek_len) {
+          l->mark_end(l);   // candidate end: just before '<'
+          advance(l);       // consume '<' speculatively
+          int32_t n = l->lookahead;
+          bool markup = (n == '>' || (n >= 'A' && n <= 'Z') || (n >= 'a' && n <= 'z'));
+          if (markup) return consumed;  // stop before '<' — element/fragment wins
+          // Not markup — include '<' and continue.
+          consumed = true;
+          l->mark_end(l);
+          prev_c = '<';
+          continue;
+        }
+        ADV();
         break;
       }
       default:
@@ -586,6 +635,41 @@ static bool scan_embedded_text(TSLexer *l) {
   return consumed;
 }
 
+// Scan an embedded_text_dq token: the double-quote-delimited twin of
+// scan_embedded_text, used inside f"…"/js"…"/css"…" literals.
+//   • stops BEFORE an unescaped '"' (the '"' token closes the literal);
+//   • stops BEFORE an '@{' hole, but consumes a bare '@';
+//   • treats a backslash-escaped quote ('\"') as ordinary text.
+static bool scan_embedded_text_dq(TSLexer *l) {
+  bool consumed = false;
+  while (!l->eof(l)) {
+    if (l->lookahead == '"') {
+      l->mark_end(l);
+      return consumed;
+    }
+    if (l->lookahead == '@') {
+      l->mark_end(l);
+      advance(l);
+      if (l->lookahead == '{') return consumed; // '@{' starts a hole
+      consumed = true;
+      continue;
+    }
+    if (l->lookahead == '\\') {
+      advance(l); // consume the backslash
+      // An escaped quote is part of the text, not a delimiter.
+      if (!l->eof(l) && l->lookahead == '"') advance(l);
+      consumed = true;
+      l->mark_end(l);
+      continue;
+    }
+    advance(l);
+    consumed = true;
+    l->mark_end(l);
+  }
+  l->mark_end(l);
+  return consumed;
+}
+
 bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool *valid) {
   if (valid[PIPE]) {
     if (scan_pipe(l)) { l->result_symbol = PIPE; return true; }
@@ -607,6 +691,9 @@ bool tree_sitter_gsx_external_scanner_scan(void *payload, TSLexer *l, const bool
   }
   if (valid[EMBEDDED_TEXT]) {
     if (scan_embedded_text(l)) { l->result_symbol = EMBEDDED_TEXT; return true; }
+  }
+  if (valid[EMBEDDED_TEXT_DQ]) {
+    if (scan_embedded_text_dq(l)) { l->result_symbol = EMBEDDED_TEXT_DQ; return true; }
   }
   if (valid[GO_TEXT]) {
     if (scan_go_text_impl(l, false, false, false)) { l->result_symbol = GO_TEXT; return true; }

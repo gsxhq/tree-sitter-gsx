@@ -11,7 +11,9 @@ module.exports = grammar({
   //   embedded_text  — text run inside js`...`/css`...` literals; stops at a backtick
   //                    or an '@{' hole, but consumes a bare '@' (regex tokens cannot
   //                    express that lookahead — see scan_embedded_text in scanner.c)
-  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text, $.embedded_text],
+  //   embedded_text_dq — same, for the double-quote delimiter form (f"…"/js"…"/css"…");
+  //                    stops at an unescaped '"' or an '@{' hole.
+  externals: $ => [$.go_text, $.raw_text, $.pipe, $.go_cond_text, $.go_interp_text, $.go_spread_text, $.style_go_text, $.embedded_text, $.embedded_text_dq],
   extras: $ => [/\s/, $.line_comment, $.block_comment],
   rules: {
     source_file: $ => repeat($._top_level),
@@ -80,10 +82,23 @@ module.exports = grammar({
     // Interpolation: { expr } or { expr? } or { markup }
     // go_interp_text is used here (not go_text) so the scanner can refuse
     // control-flow keywords and let the control_flow rule win instead.
-    interpolation: $ => seq('{', $._hole_body, '}'),
+    // A leading f`…`/f"…" literal is a valid hole value: { f`hi @{name}` }.
+    // (js/css literals are attribute-context only, never standalone hole values.)
+    interpolation: $ => seq('{', choice($.embedded_f_literal, $._hole_body), '}'),
     _hole_body: $ => choice($.pipeline, repeat1($._node)),
     pipeline: $ => seq($.go_interp_expr, repeat(seq($.pipe, $.go_interp_expr))),
-    go_interp_expr: $ => $.go_interp_text,
+    // A Go interpolation expression may embed element/fragment and f-literal VALUES
+    // mid-expression — { wrap(<div/>) }, { emphasize(f`@{x}!`) }. The leading
+    // go_interp_text is required so a pure-markup hole ({ <div/> }) still routes to
+    // repeat1(_node) and a leading f`…` hole to interpolation's own choice; the
+    // scanner stops go_interp_text before a markup '<' or an f prefix so the
+    // element/fragment/f-literal rule can match, then resumes (see scanner.c).
+    // (js/css are attribute-context only — never standalone Go values — and their
+    // mid-expression stop is reserved for css_composed_value in style attributes.)
+    go_interp_expr: $ => seq(
+      $.go_interp_text,
+      repeat(choice($.go_interp_text, $.element, $.fragment, $.embedded_f_literal)),
+    ),
 
     // go_expr is used in expr_attribute and other contexts where
     // control-flow keywords are not valid anyway.
@@ -131,7 +146,6 @@ module.exports = grammar({
     // Attributes (including conditional_attribute)
     attribute: $ => choice(
       $.embedded_attribute,
-      $.interpolated_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
@@ -140,37 +154,37 @@ module.exports = grammar({
       $.content_comment,
     ),
     static_attribute: $ => seq($.attribute_name, '=', $.quoted_string),
-    // Plain (non-JS, non-CSS) interpolating attribute literal:
-    //   name=`…static…@{ expr }…`
-    // Mixes literal text with typed, auto-escaped @{ } holes — no js/css keyword.
-    // Reuses the embedded_text scanner token (stops at a backtick or an '@{').
-    interpolated_attribute: $ => seq($.attribute_name, '=', field('value', $.interpolated_literal)),
-    interpolated_literal: $ => seq(
-      '`',
-      repeat(choice($.embedded_text, $.at_hole)),
-      '`',
-    ),
+    // Interpolation is opt-in behind an f/js/css prefix (either delimiter). A BARE
+    //   name=`…`  /  name="…"
+    // is a plain Go string (static_attribute → quoted_string) with NO @{ } holes;
+    // an unprefixed backtick that used to interpolate now stays literal.
     embedded_attribute: $ => prec(1, seq(
       $.attribute_name,
       '=',
       choice(
+        field('value', $.embedded_f_literal),
         field('value', $.embedded_js_literal),
         field('value', $.embedded_css_literal),
+        seq('{', field('value', $.embedded_f_literal), '}'),
         seq('{', field('value', $.embedded_js_literal), '}'),
         seq('{', field('value', $.embedded_css_literal), '}'),
       ),
     )),
-    embedded_js_literal: $ => seq(
-      alias('js', $.embedded_language),
-      '`',
-      repeat(choice($.embedded_text, $.at_hole)),
-      '`',
+    // f`…`/f"…": generic interpolating literal (auto-escaped text, no sublanguage).
+    // js/css embed their sublanguage; f does not. All three take @{ } holes and
+    // support both delimiters (embedded_text stops at a backtick; embedded_text_dq
+    // stops at a double-quote — see scanner.c).
+    embedded_f_literal: $ => choice(
+      seq(alias('f', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('f', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
     ),
-    embedded_css_literal: $ => seq(
-      alias('css', $.embedded_language),
-      '`',
-      repeat(choice($.embedded_text, $.at_hole)),
-      '`',
+    embedded_js_literal: $ => choice(
+      seq(alias('js', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('js', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+    ),
+    embedded_css_literal: $ => choice(
+      seq(alias('css', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('css', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
     ),
     // embedded_text is an external token (scan_embedded_text): a run of literal
     // text inside a js`...`/css`...` value that ends at a backtick or an '@{' hole
@@ -205,7 +219,9 @@ module.exports = grammar({
     ),
 
     attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
-    quoted_string: $ => choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'")),
+    // Bare (unprefixed) string attribute value — plain, no @{ } interpolation.
+    // The backtick form is a Go raw string; a '@{' inside it is literal text.
+    quoted_string: $ => choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'"), seq('`', /[^`]*/, '`')),
 
     text: $ => token(prec(-1, /[^<{}>]+/)),
 

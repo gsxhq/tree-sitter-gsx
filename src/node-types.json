@@ -47,10 +47,6 @@
           "named": true
         },
         {
-          "type": "interpolated_attribute",
-          "named": true
-        },
-        {
           "type": "spread_attribute",
           "named": true
         },
@@ -416,6 +412,10 @@
             "named": true
           },
           {
+            "type": "embedded_f_literal",
+            "named": true
+          },
+          {
             "type": "embedded_js_literal",
             "named": true
           }
@@ -452,6 +452,37 @@
         {
           "type": "embedded_text",
           "named": true
+        },
+        {
+          "type": "embedded_text_dq",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_f_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        },
+        {
+          "type": "embedded_text_dq",
+          "named": true
         }
       ]
     }
@@ -474,6 +505,10 @@
         },
         {
           "type": "embedded_text",
+          "named": true
+        },
+        {
+          "type": "embedded_text_dq",
           "named": true
         }
       ]
@@ -662,9 +697,21 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "element",
+          "named": true
+        },
+        {
+          "type": "embedded_f_literal",
+          "named": true
+        },
+        {
+          "type": "fragment",
+          "named": true
+        },
         {
           "type": "go_interp_text",
           "named": true
@@ -693,51 +740,6 @@
     "fields": {}
   },
   {
-    "type": "interpolated_attribute",
-    "named": true,
-    "fields": {
-      "value": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "interpolated_literal",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "attribute_name",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "interpolated_literal",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "at_hole",
-          "named": true
-        },
-        {
-          "type": "embedded_text",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "interpolation",
     "named": true,
     "fields": {},
@@ -759,6 +761,10 @@
         },
         {
           "type": "element",
+          "named": true
+        },
+        {
+          "type": "embedded_f_literal",
           "named": true
         },
         {
@@ -1126,6 +1132,10 @@
   },
   {
     "type": "embedded_text",
+    "named": true
+  },
+  {
+    "type": "embedded_text_dq",
     "named": true
   },
   {

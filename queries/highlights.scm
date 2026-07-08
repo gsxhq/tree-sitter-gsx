@@ -26,6 +26,7 @@
 (quoted_string) @string
 (embedded_language) @keyword
 (embedded_text) @string.special
+(embedded_text_dq) @string.special
 
 ; Operators
 (pipe) @operator

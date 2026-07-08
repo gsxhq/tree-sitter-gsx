@@ -38,14 +38,14 @@
   (#set! injection.language "css")
   (#set! injection.combined true))
 
-; Explicit js`...` attr literal text runs → JavaScript, stitched across @{ } holes.
+; Explicit js`...`/js"..." attr literal text runs → JavaScript, stitched across @{ } holes.
 (embedded_js_literal
-  (embedded_text) @injection.content
+  [(embedded_text) (embedded_text_dq)] @injection.content
   (#set! injection.language "javascript")
   (#set! injection.combined true))
 
-; Explicit css`...` attr literal text runs → CSS, stitched across @{ } holes.
+; Explicit css`...`/css"..." attr literal text runs → CSS, stitched across @{ } holes.
 (embedded_css_literal
-  (embedded_text) @injection.content
+  [(embedded_text) (embedded_text_dq)] @injection.content
   (#set! injection.language "css")
   (#set! injection.combined true))
