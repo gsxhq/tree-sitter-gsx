@@ -16,3 +16,21 @@
   argument, our code can't introspect `.rules` on it directly.
 - See `docs/superpowers/specs/2026-07-08-unified-go-grammar-phase1-design.md`
   for full rationale.
+- `queries/highlights.scm`/`injections.scm` and `test/highlight/tags.gsx`
+  also reference the old grammar's node types and needed relocating
+  (`queries-legacy-blob-model/`, `test/highlight-legacy-blob-model/`) for
+  `tree-sitter test` to exit cleanly — Task 1's plan only anticipated
+  `test/corpus/`/`test/examples/`. See `queries-legacy-blob-model/README.md`.
+
+## Capability regressions found during adversarial review (Phase 2 inputs)
+
+Both are visible `ERROR` nodes, never silent misparses — safe, but worth
+deciding early in Phase 2 rather than rediscovering:
+
+- **Qualified/dotted tag names** (`<ui.Icon/>`) now ERROR. Phase 1's
+  `element`'s `name` field is a bare Go `identifier`; the old blob grammar's
+  `tag_name` allowed dots for package-qualified components. Phase 2 needs to
+  decide whether `name` becomes a `selector_expression`/`qualified_type`.
+- **Whitespace after `<`** (`< Icon/>`) is accepted as markup — harmless in
+  Phase 1 (no real Go expression starts with a prefix `<`), but looser than
+  JSX-style adjacency if that's wanted later.
