@@ -1,0 +1,357 @@
+==================
+bare f-literal (backtick) as a Go value with a hole
+==================
+
+package main
+func f() {
+	var x = f`hi @{name}`
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_f_literal
+                (embedded_language)
+                (embedded_text)
+                (at_hole
+                  (identifier))))))))))
+
+==================
+bare f-literal (double-quote) as a Go value with a hole
+==================
+
+package main
+func f() {
+	var x = f"hi @{name}"
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_f_literal
+                (embedded_language)
+                (embedded_text_dq)
+                (at_hole
+                  (identifier))))))))))
+
+==================
+js literal as an attribute value
+==================
+
+package main
+func f() {
+	var x = <div class=js`track(@{count})`/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (identifier)
+                (attribute
+                  (embedded_attribute
+                    name: (attribute_name)
+                    value: (embedded_js_literal
+                      (embedded_language)
+                      (embedded_text)
+                      (at_hole
+                        (identifier))
+                      (embedded_text))))))))))))
+
+==================
+css literal as an attribute value
+==================
+
+package main
+func f() {
+	var x = <div style=css`--n:@{count}`/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (identifier)
+                (attribute
+                  (embedded_attribute
+                    name: (attribute_name)
+                    value: (embedded_css_literal
+                      (embedded_language)
+                      (embedded_text)
+                      (at_hole
+                        (identifier)))))))))))))
+
+==================
+f-literal used inside a plain hole (via _expression, no special-casing)
+==================
+
+package main
+func f() {
+	var x = <div>{f`hi @{name}!`}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (identifier)
+                (hole
+                  (embedded_f_literal
+                    (embedded_language)
+                    (embedded_text)
+                    (at_hole
+                      (identifier))
+                    (embedded_text)))
+                close_name: (identifier)))))))))
+
+==================
+bare backtick attribute value stays a plain string, @{ } is literal text
+==================
+
+package main
+func f() {
+	var x = <div title=`literal @{not-a-hole}`/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (identifier)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (raw_string_literal
+                      (raw_string_literal_content))))))))))))
+
+==================
+js literal double-quote variant containing literal backticks
+==================
+
+package main
+func f() {
+	var x = <button @click=js"emit(`@{variant}`)">Quoted</button>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (identifier)
+                (attribute
+                  (embedded_attribute
+                    name: (attribute_name)
+                    value: (embedded_js_literal
+                      (embedded_language)
+                      (embedded_text_dq)
+                      (at_hole
+                        (identifier))
+                      (embedded_text_dq))))
+                (text)
+                close_name: (identifier)))))))))
+
+==================
+bare @ not followed by { stays part of the text run
+==================
+
+package main
+func f() {
+	var x = f`a @member b`
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_f_literal
+                (embedded_language)
+                (embedded_text)))))))))
+
+==================
+pipe chain inside an attribute-value f-literal's hole
+==================
+
+package main
+func f() {
+	var x = <span title=f`Item @{ id |> upper }`>y</span>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (identifier)
+                (attribute
+                  (embedded_attribute
+                    name: (attribute_name)
+                    value: (embedded_f_literal
+                      (embedded_language)
+                      (embedded_text)
+                      (at_hole
+                        (identifier)
+                        (identifier)))))
+                (text)
+                close_name: (identifier)))))))))
+
+==================
+two-stage pipe chain
+==================
+
+package main
+func f() {
+	var x = f`@{ id |> truncate(10) |> upper }`
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_f_literal
+                (embedded_language)
+                (at_hole
+                  (identifier)
+                  (call_expression
+                    function: (identifier)
+                    arguments: (argument_list
+                      (int_literal)))
+                  (identifier))))))))))
+
+==================
+regression: bitwise-or and logical-or operators stay untouched by the pipe token
+==================
+
+package main
+func cmp(a int, b int) bool {
+	return a | b
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier))
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    result: (type_identifier)
+    body: (block
+      (statement_list
+        (return_statement
+          (expression_list
+            (binary_expression
+              left: (identifier)
+              right: (identifier))))))))

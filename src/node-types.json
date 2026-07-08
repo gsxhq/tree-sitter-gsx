@@ -20,6 +20,10 @@
         "named": true
       },
       {
+        "type": "embedded_f_literal",
+        "named": true
+      },
+      {
         "type": "false",
         "named": true
       },
@@ -415,6 +419,21 @@
     }
   },
   {
+    "type": "at_hole",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "attribute",
     "named": true,
     "fields": {},
@@ -428,6 +447,10 @@
         },
         {
           "type": "conditional_attribute",
+          "named": true
+        },
+        {
+          "type": "embedded_attribute",
           "named": true
         },
         {
@@ -1092,6 +1115,121 @@
         },
         {
           "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_attribute",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "embedded_css_literal",
+            "named": true
+          },
+          {
+            "type": "embedded_f_literal",
+            "named": true
+          },
+          {
+            "type": "embedded_js_literal",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "embedded_css_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        },
+        {
+          "type": "embedded_text_dq",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_f_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        },
+        {
+          "type": "embedded_text_dq",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "embedded_js_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "at_hole",
+          "named": true
+        },
+        {
+          "type": "embedded_language",
+          "named": true
+        },
+        {
+          "type": "embedded_text",
+          "named": true
+        },
+        {
+          "type": "embedded_text_dq",
           "named": true
         }
       ]
@@ -3199,6 +3337,10 @@
     "named": false
   },
   {
+    "type": "@{",
+    "named": false
+  },
+  {
     "type": "[",
     "named": false
   },
@@ -3262,6 +3404,18 @@
   {
     "type": "else",
     "named": false
+  },
+  {
+    "type": "embedded_language",
+    "named": true
+  },
+  {
+    "type": "embedded_text",
+    "named": true
+  },
+  {
+    "type": "embedded_text_dq",
+    "named": true
   },
   {
     "type": "escape_sequence",
@@ -3413,6 +3567,10 @@
   },
   {
     "type": "|=",
+    "named": false
+  },
+  {
+    "type": "|>",
     "named": false
   },
   {

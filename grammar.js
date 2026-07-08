@@ -3,6 +3,8 @@ const goGrammar = require('tree-sitter-go/grammar.js');
 module.exports = grammar(goGrammar, {
   name: 'gsx',
 
+  externals: $ => [$.embedded_text, $.embedded_text_dq],
+
   rules: {
     // Redeclares Go's _expression alternative list (rule NAMES only —
     // each rule's own body stays inherited/untouched from goGrammar)
@@ -34,7 +36,45 @@ module.exports = grammar(goGrammar, {
       $.parenthesized_expression,
       $.element,
       $.fragment,
+      // js/css literals are attribute-context only, never standalone Go
+      // values (matches the original f-literal design) — only f
+      // qualifies as a bare _expression.
+      $.embedded_f_literal,
     ),
+
+    // f`…`/f"…": generic interpolating literal. js/css embed their
+    // sublanguage; f does not — all three take @{ } holes and support both
+    // delimiters (embedded_text stops at a backtick; embedded_text_dq stops
+    // at a double-quote — external scanner, lifted from the pre-existing
+    // shipped grammar's scan_embedded_text/scan_embedded_text_dq).
+    embedded_f_literal: $ => choice(
+      seq(alias('f', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('f', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+    ),
+    embedded_js_literal: $ => choice(
+      seq(alias('js', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('js', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+    ),
+    embedded_css_literal: $ => choice(
+      seq(alias('css', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias('css', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+    ),
+
+    // @{ expr } / @{ expr |> stage |> stage } hole inside f/js/css literal
+    // text. A pipe stage is syntactically just a real Go expression
+    // (typically identifier or call_expression) — codegen handles seed-first
+    // forward-application, the grammar only needs the shape.
+    at_hole: $ => seq('@{', $._expression, repeat(seq('|>', $._expression)), '}'),
+
+    embedded_attribute: $ => prec(1, seq(
+      field('name', $.attribute_name),
+      '=',
+      choice(
+        field('value', $.embedded_f_literal),
+        field('value', $.embedded_js_literal),
+        field('value', $.embedded_css_literal),
+      ),
+    )),
 
     element: $ => choice(
       seq('<', field('name', $.identifier), repeat($.attribute), '/>'),
@@ -46,6 +86,7 @@ module.exports = grammar(goGrammar, {
     ),
 
     attribute: $ => choice(
+      $.embedded_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,

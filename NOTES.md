@@ -118,3 +118,37 @@ deciding early in Phase 2 rather than rediscovering:
   `conditional_attribute`, which wraps whole attributes), `component`
   declarations (2d), the `\|>` pipeline operator inside holes (inherited
   from 2a, `expr_attribute` reuses `hole` as-is).
+
+## Phase 2c notes (f/js/css literals)
+
+- This is the unified grammar's **first real external scanner**
+  (`src/scanner.c`, `embedded_text`/`embedded_text_dq`). Every prior
+  phase needed none — but an `f`/`js`/`css` literal's body must stop at
+  a closing delimiter or an `@{` hole while treating a bare `@` (not
+  followed by `{`) as ordinary text, and that lookahead genuinely can't
+  be expressed as a plain regex token (tree-sitter's `token()` regex has
+  no lookahead). Lifted `scan_embedded_text`/`scan_embedded_text_dq`
+  near-verbatim from the pre-existing shipped grammar's scanner — those
+  two functions were always self-contained, with no dependency on the
+  Go-blob-boundary logic that made the rest of the old scanner obsolete.
+- `embedded_f_literal` joins `_expression` (so it works as a bare Go
+  value AND automatically inside plain `{ }` holes via 2a's `hole` rule,
+  with zero change needed to `hole` itself). `js`/`css` stay
+  attribute-context only, matching the original (already-shipped)
+  f-literal design — not a new restriction introduced here.
+- `css_composed_value` deferred — grepped the full legacy corpus and all
+  13 example `.gsx` files: appears in exactly 2 corpus test cases, zero
+  real examples. Narrow enough to defer to a dedicated follow-up.
+- `@{ }` pipe chains were scoped IN (unlike plain-`{ }`-hole pipe support,
+  which stays deferred) — genuinely used in the legacy corpus
+  (`holes_attrs.txt:295`: `` f`Item @{ id |> upper }` ``), unlike the
+  single-quote/multi-node-hole cases in earlier phases where deferral was
+  backed by zero real usage. A pipe stage is syntactically just a real Go
+  expression (identifier or call), so `at_hole` needed no filter-resolution
+  machinery — only `seq($._expression, repeat(seq('\|>', $._expression)))`.
+  Confirmed `'\|>'` needs no external scanner and doesn't collide with
+  Go's `\|`/`\|\|` operators — tree-sitter's own longest-match
+  tokenization disambiguates it the same way `<-`/`<>` already are.
+- Deferred (see the Phase 2c spec for the full list): `css_composed_value`,
+  `value_control_flow`, `component` declarations (2d), pipe chains in
+  plain `{ }` holes (still 2a/2b's existing deferral).
