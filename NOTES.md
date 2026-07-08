@@ -54,8 +54,8 @@ deciding early in Phase 2 rather than rediscovering:
   `test/corpus-legacy-blob-model/control_flow.txt` (`switch v { case "a":
   }` → `(block (text))` there too). Confirmed parity, not a regression,
   by checking the old grammar's own corpus before assuming either way.
-- Still no external scanner: `text: token(prec(-1, /[^<{]+/))` is a plain
-  regex token.
+- Still no external scanner: `text` is a plain regex token (see below for
+  its exact, twice-revised regex).
 - Deferred (see the Phase 2a spec for the full list): attributes (2b),
   `f`/`js`/`css` literals (2c), `component` declarations (2d), `doctype`/
   `html_comment`/`content_comment`/`raw_element` (`raw_element` likely
