@@ -22,7 +22,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (embedded_f_literal
-                (embedded_language)
+                (embedded_open)
                 (embedded_text)
                 (at_hole
                   (identifier))))))))))
@@ -51,7 +51,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (embedded_f_literal
-                (embedded_language)
+                (embedded_open)
                 (embedded_text_dq)
                 (at_hole
                   (identifier))))))))))
@@ -80,12 +80,12 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (embedded_attribute
                     name: (attribute_name)
                     value: (embedded_js_literal
-                      (embedded_language)
+                      (embedded_open)
                       (embedded_text)
                       (at_hole
                         (identifier))
@@ -115,12 +115,12 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (embedded_attribute
                     name: (attribute_name)
                     value: (embedded_css_literal
-                      (embedded_language)
+                      (embedded_open)
                       (embedded_text)
                       (at_hole
                         (identifier)))))))))))))
@@ -149,15 +149,15 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (hole
                   (embedded_f_literal
-                    (embedded_language)
+                    (embedded_open)
                     (embedded_text)
                     (at_hole
                       (identifier))
                     (embedded_text)))
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 bare backtick attribute value stays a plain string, @{ } is literal text
@@ -183,7 +183,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -214,18 +214,18 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (attribute
                   (embedded_attribute
                     name: (attribute_name)
                     value: (embedded_js_literal
-                      (embedded_language)
+                      (embedded_open)
                       (embedded_text_dq)
                       (at_hole
                         (identifier))
                       (embedded_text_dq))))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 bare @ not followed by { stays part of the text run
@@ -251,7 +251,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (embedded_f_literal
-                (embedded_language)
+                (embedded_open)
                 (embedded_text)))))))))
 
 ==================
@@ -278,18 +278,18 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (attribute
                   (embedded_attribute
                     name: (attribute_name)
                     value: (embedded_f_literal
-                      (embedded_language)
+                      (embedded_open)
                       (embedded_text)
                       (at_hole
                         (identifier)
                         (identifier)))))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 two-stage pipe chain
@@ -315,7 +315,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (embedded_f_literal
-                (embedded_language)
+                (embedded_open)
                 (at_hole
                   (identifier)
                   (call_expression

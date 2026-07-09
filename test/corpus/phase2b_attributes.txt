@@ -22,7 +22,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -64,14 +64,14 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
                     value: (interpreted_string_literal
                       (interpreted_string_literal_content))))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 conditional attribute with if-else, nested static attributes
@@ -97,7 +97,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (attribute
                   (conditional_attribute
                     (keyword)
@@ -115,7 +115,7 @@ func f() {
                           value: (interpreted_string_literal
                             (interpreted_string_literal_content)))))))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 backtick (raw) string attribute value
@@ -141,7 +141,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -172,7 +172,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -213,7 +213,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -256,7 +256,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (expr_attribute
                     name: (attribute_name)
@@ -291,7 +291,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (expr_attribute
                     name: (attribute_name)
@@ -329,7 +329,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (static_attribute
                     name: (attribute_name)
@@ -367,7 +367,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (attribute
                   (conditional_attribute
                     (keyword)
@@ -398,7 +398,7 @@ func f() {
                           value: (interpreted_string_literal
                             (interpreted_string_literal_content)))))))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 conditional attribute with a three-branch else-if chain
@@ -424,7 +424,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)
+                name: (tag_name)
                 (attribute
                   (conditional_attribute
                     (keyword)

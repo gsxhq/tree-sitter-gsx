@@ -18,9 +18,9 @@ component Foo() {
     parameters: (parameter_list)
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (text)
-        close_name: (identifier)))))
+        close_name: (tag_name)))))
 
 ==================
 component with typed parameters
@@ -48,7 +48,7 @@ component Card(title string, count int) {
         type: (type_identifier)))
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (attribute
           (static_attribute
             name: (attribute_name)
@@ -56,7 +56,7 @@ component Card(title string, count int) {
               (interpreted_string_literal_content))))
         (hole
           (identifier))
-        close_name: (identifier)))))
+        close_name: (tag_name)))))
 
 ==================
 method component with a receiver
@@ -82,12 +82,12 @@ component (p Page) Content() {
     parameters: (parameter_list)
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (hole
           (selector_expression
             operand: (identifier)
             field: (field_identifier)))
-        close_name: (identifier)))))
+        close_name: (tag_name)))))
 
 ==================
 generic component with a type parameter
@@ -118,7 +118,7 @@ component List[T any](items []T) {
           element: (type_identifier))))
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (control_flow
           (keyword)
           condition: (range_clause
@@ -127,11 +127,11 @@ component List[T any](items []T) {
               (identifier))
             right: (identifier))
           (element
-            open_name: (identifier)
+            open_name: (tag_name)
             (hole
               (identifier))
-            close_name: (identifier)))
-        close_name: (identifier)))))
+            close_name: (tag_name)))
+        close_name: (tag_name)))))
 
 ==================
 two adjacent components
@@ -211,12 +211,12 @@ component Foo() {
     parameters: (parameter_list)
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (hole
           (call_expression
             function: (identifier)
             arguments: (argument_list)))
-        close_name: (identifier)))))
+        close_name: (tag_name)))))
 
 ==================
 component with an empty body
@@ -257,13 +257,13 @@ component Foo() {
       name: (identifier)
       value: (expression_list
         (element
-          name: (identifier)))))
+          name: (tag_name)))))
   (component_declaration
     name: (identifier)
     parameters: (parameter_list)
     body: (component_body
       (element
-        open_name: (identifier)
+        open_name: (tag_name)
         (hole
           (identifier))
-        close_name: (identifier)))))
+        close_name: (tag_name)))))

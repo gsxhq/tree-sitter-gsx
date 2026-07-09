@@ -75,14 +75,16 @@
   name: (identifier) @function)
 "component" @keyword
 
-; Element tags: <div>…</div>, <Icon/>. The name is an identifier; color it as a
-; tag. A capitalized/dotted name is a component invocation — still tag-colored.
-(element
-  name: (identifier) @tag)
-(element
-  open_name: (identifier) @tag)
-(element
-  close_name: (identifier) @tag)
+; Element tags: <div>…</div>, <Icon/>, <ui.Button/>, <el-dialog>. The name is a
+; single `tag_name` token (plain, dotted, or hyphenated) — color it as a tag.
+(element name: (tag_name) @tag)
+(element open_name: (tag_name) @tag)
+(element close_name: (tag_name) @tag)
+
+; Raw-text elements <script>/<style>: tag name + raw body.
+(raw_element open_name: (tag_name) @tag)
+(raw_element close_name: (tag_name) @tag)
+(raw_text) @none
 
 ; Markup tag punctuation. (Fragment delimiters <>/</> are single composite
 ; tokens, not queryable as string literals, so they're left uncolored.)
@@ -103,18 +105,33 @@
   "}"
 ] @punctuation.special
 
+; `{{ … }}` Go statement block delimiters.
+[
+  "{{"
+  "}}"
+] @punctuation.special
+
 ; Control-flow / value-form keyword nodes (aliased to `keyword` in the grammar:
-; if/for/switch/else inside control_flow, conditional_attribute, etc.).
+; if/for/switch/else/case/default inside control_flow, conditional_attribute,
+; composable class value-forms, etc.).
 (keyword) @keyword.conditional
 
-; Embedded f`…` / js`…` / css`…` literals.
-(embedded_language) @keyword
+; Composable class/style condition guard (`"cls": cond`) — the guard colon.
+(class_part cond: (_) @variable)
+
+; Embedded f`…` / js`…` / css`…` literals: the prefix+delimiter opener, the raw
+; body text, and the @{ … } interpolation hole markers.
+(embedded_open) @keyword
 [
   (embedded_text)
   (embedded_text_dq)
 ] @string.special
-; @{ … } interpolation hole markers inside embedded literals.
 "@{" @punctuation.special
+
+; Comments in markup.
+(html_comment) @comment
+(content_comment) @comment
+(doctype) @keyword.directive
 
 ; Markup text content (between tags) — plain literal text, left uncolored so it
 ; reads as prose rather than code.

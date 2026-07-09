@@ -3,13 +3,33 @@ const goGrammar = require('tree-sitter-go/grammar.js');
 module.exports = grammar(goGrammar, {
   name: 'gsx',
 
-  externals: $ => [$.embedded_text, $.embedded_text_dq],
+  externals: $ => [$.embedded_text, $.embedded_text_dq, $.raw_text],
+
+  conflicts: $ => [
+    // tree-sitter-go's own 8 internal conflicts — MUST be re-included:
+    // a `conflicts` array in the overrides REPLACES the base grammar's
+    // conflicts (it does not merge), so omitting these resurfaces Go's own
+    // ambiguities (e.g. identifier '.' → selector_expression vs
+    // qualified_type). Copied verbatim from tree-sitter-go's grammar.js;
+    // re-verify on every upstream version bump.
+    [$._simple_type, $._expression],
+    [$._simple_type, $.generic_type, $._expression],
+    [$.qualified_type, $._expression],
+    [$.generic_type, $._simple_type],
+    [$.parameter_declaration, $._simple_type],
+    [$.type_parameter_declaration, $._simple_type, $._expression],
+    [$.type_parameter_declaration, $._expression],
+    [$.type_parameter_declaration, $._simple_type, $.generic_type, $._expression],
+    // gsx-added: a composable value's first part reduces to class_part
+    // (multi-part path) or composable_first_part (single-part path); the
+    // next token (',' vs '}') resolves it.
+    [$.class_part, $.composable_first_part],
+  ],
 
   rules: {
     // Redeclares Go's own top-level-declaration choice list (rule NAMES
     // only) plus component_declaration — same redeclaration pattern as
-    // _expression in Phase 1. Verify this list against tree-sitter-go's
-    // _top_level_declaration on every upstream version bump.
+    // _expression in Phase 1.
     _top_level_declaration: $ => choice(
       $.package_clause,
       $.function_declaration,
@@ -20,7 +40,7 @@ module.exports = grammar(goGrammar, {
 
     // Reuses Go's own parameter_list (receiver + parameters) and
     // type_parameter_list (generics) verbatim — no custom regex-blob
-    // capture needed now that Go is native. Body is 2a's _child grammar.
+    // capture needed now that Go is native.
     component_declaration: $ => seq(
       'component',
       optional(field('receiver', $.parameter_list)),
@@ -32,10 +52,6 @@ module.exports = grammar(goGrammar, {
 
     component_body: $ => seq('{', repeat($._child), '}'),
 
-    // Redeclares Go's _expression alternative list (rule NAMES only —
-    // each rule's own body stays inherited/untouched from goGrammar)
-    // plus element/fragment. Verify this list against tree-sitter-go's
-    // _expression rule on every upstream version bump.
     _expression: $ => choice(
       $.unary_expression,
       $.binary_expression,
@@ -63,8 +79,8 @@ module.exports = grammar(goGrammar, {
       $.element,
       $.fragment,
       // js/css literals are attribute-context only, never standalone Go
-      // values (matches the original f-literal design) — only f
-      // qualifies as a bare _expression.
+      // values (matches the original f-literal design) — only f qualifies
+      // as a bare _expression.
       $.embedded_f_literal,
     ),
 
@@ -73,18 +89,32 @@ module.exports = grammar(goGrammar, {
     // delimiters (embedded_text stops at a backtick; embedded_text_dq stops
     // at a double-quote — external scanner, lifted from the pre-existing
     // shipped grammar's scan_embedded_text/scan_embedded_text_dq).
+    // The prefix+delimiter is ONE combined token (`` f` ``, `f"`, etc.), not a
+    // bare `'f'`/`'js'`/`'css'` string token — otherwise those literals shadow
+    // Go identifiers named exactly `f`/`js`/`css` (a `'f'` token wins over the
+    // `identifier` regex for the string "f", breaking e.g. a receiver named
+    // `f`). Combining prefix+delimiter means `f` alone is never a special
+    // token. The opener is aliased to `embedded_open` (highlighting colors the
+    // prefix+delimiter as the literal marker); the matching closing delimiter
+    // follows. `token(prec(1, …))` keeps `` f` `` winning over `<` etc.
     embedded_f_literal: $ => choice(
-      seq(alias('f', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
-      seq(alias('f', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+      seq(alias($._f_bt_open, $.embedded_open), repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias($._f_dq_open, $.embedded_open), repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
     ),
     embedded_js_literal: $ => choice(
-      seq(alias('js', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
-      seq(alias('js', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+      seq(alias($._js_bt_open, $.embedded_open), repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias($._js_dq_open, $.embedded_open), repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
     ),
     embedded_css_literal: $ => choice(
-      seq(alias('css', $.embedded_language), '`', repeat(choice($.embedded_text, $.at_hole)), '`'),
-      seq(alias('css', $.embedded_language), '"', repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
+      seq(alias($._css_bt_open, $.embedded_open), repeat(choice($.embedded_text, $.at_hole)), '`'),
+      seq(alias($._css_dq_open, $.embedded_open), repeat(choice($.embedded_text_dq, $.at_hole)), '"'),
     ),
+    _f_bt_open: $ => token(prec(1, seq('f', '`'))),
+    _f_dq_open: $ => token(prec(1, seq('f', '"'))),
+    _js_bt_open: $ => token(prec(1, seq('js', '`'))),
+    _js_dq_open: $ => token(prec(1, seq('js', '"'))),
+    _css_bt_open: $ => token(prec(1, seq('css', '`'))),
+    _css_dq_open: $ => token(prec(1, seq('css', '"'))),
 
     // @{ expr } / @{ expr |> stage |> stage } hole inside f/js/css literal
     // text. A pipe stage is syntactically just a real Go expression
@@ -103,16 +133,27 @@ module.exports = grammar(goGrammar, {
     )),
 
     element: $ => choice(
-      seq('<', field('name', $.identifier), repeat($.attribute), '/>'),
+      seq('<', field('name', $.tag_name), repeat($.attribute), '/>'),
       seq(
-        '<', field('open_name', $.identifier), repeat($.attribute), '>',
+        '<', field('open_name', $.tag_name), repeat($.attribute), '>',
         repeat($._child),
-        '</', field('close_name', $.identifier), '>',
+        '</', field('close_name', $.tag_name), '>',
       ),
     ),
 
+    // Tag name: one token covering plain (<div>), dotted/qualified
+    // (<ui.Button>, <p.Content>), and hyphenated custom-element/web-component
+    // (<el-dialog>, <turbo-frame>) names. A dedicated token (letters, then
+    // letters/digits/./-) rather than composing identifiers, because a
+    // hyphen can't be a token boundary (it's the minus operator). It does
+    // NOT shadow Go's `identifier`: tree-sitter's lexer is context-sensitive,
+    // so tag_name is only a candidate in element-name position (right after a
+    // markup `<`), never where a Go identifier is expected — verified.
+    tag_name: $ => token(/[A-Za-z][A-Za-z0-9.\-]*/),
+
     attribute: $ => choice(
       $.embedded_attribute,
+      $.composable_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
@@ -121,6 +162,100 @@ module.exports = grammar(goGrammar, {
     ),
 
     attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
+
+    // A composable value (class/style in real gsx) — distinguished from a
+    // single-expression expr_attribute by VALUE SHAPE, not by the attribute
+    // name: it requires either 2+ comma-separated parts, or a single part
+    // that is itself composable-only (has a `: cond` guard, `|>` stages, or
+    // is a value-form if/switch). A bare `{ single_expr }` stays
+    // expr_attribute. Restricting composable to the class/style NAMES is
+    // deferred to the compiler (tree-sitter is a highlighter and doesn't run
+    // that semantic check) — special-casing the names at the token level
+    // shadows attribute_name and needs GLR conflicts; value-shape avoids it.
+    composable_attribute: $ => seq(
+      field('name', $.attribute_name),
+      '=', '{',
+      $._composable_value,
+      '}',
+    ),
+
+    _composable_value: $ => choice(
+      // 2+ parts — the unambiguously-composable comma list.
+      seq($.class_part, repeat1(seq(',', $.class_part)), optional(',')),
+      // single composable-only part (cond/stages/value-form) + optional
+      // trailing comma. A plain single expr is NOT here — that's expr_attribute.
+      seq($.composable_first_part, optional(',')),
+    ),
+
+    class_part: $ => choice(
+      $.class_value_form,
+      seq(
+        field('expr', $._expression),
+        repeat(seq('|>', field('stage', $._expression))),
+        optional(seq(':', field('cond', $._expression))),
+      ),
+    ),
+
+    // A single part that can't be confused with a bare Go expression (so a
+    // one-part composable value is unambiguous vs expr_attribute's hole).
+    // Visible (no leading _) so it can appear in `conflicts`.
+    composable_first_part: $ => choice(
+      $.class_value_form,
+      seq(
+        field('expr', $._expression),
+        choice(
+          repeat1(seq('|>', field('stage', $._expression))),
+          seq(':', field('cond', $._expression)),
+        ),
+      ),
+    ),
+
+    // A value-form arm inside class/style: if/switch whose block bodies are
+    // themselves class-part lists (class strings), not markup children.
+    // Condition is a plain Go expression — class value-forms don't loop
+    // (no for/range), so no for_clause/range_clause here. The block body is
+    // `_class_body` (a plain 1+ comma-list, single bare expr OK) — NOT
+    // `_composable_value`: inside a block there's no expr_attribute to
+    // disambiguate from, so a lone `{ "extra" }` string is valid.
+    class_value_form: $ => choice($.class_if_form, $.class_switch_form),
+
+    class_if_form: $ => seq(
+      alias('if', $.keyword),
+      field('condition', $._expression),
+      '{', optional($._class_body), '}',
+      repeat($.class_else_clause),
+    ),
+
+    class_else_clause: $ => seq(
+      alias('else', $.keyword),
+      optional(seq(alias('if', $.keyword), field('condition', $._expression))),
+      '{', optional($._class_body), '}',
+    ),
+
+    // switch value-form: `switch EXPR { case L,L: body  default: body }`.
+    // Each case body runs to the next case/default/} (unbraced).
+    class_switch_form: $ => seq(
+      alias('switch', $.keyword),
+      optional(field('condition', $._expression)),
+      '{', repeat($.class_switch_case), '}',
+    ),
+
+    class_switch_case: $ => seq(
+      choice(
+        seq(alias('case', $.keyword), $._expression, repeat(seq(',', $._expression))),
+        alias('default', $.keyword),
+      ),
+      ':',
+      optional($._class_body),
+    ),
+
+    // A plain comma-list of class parts (single bare expr allowed) — used
+    // only inside value-form blocks, where no expr_attribute competes.
+    _class_body: $ => seq(
+      $.class_part,
+      repeat(seq(',', $.class_part)),
+      optional(','),
+    ),
 
     static_attribute: $ => seq(field('name', $.attribute_name), '=', field('value', $._string_literal)),
 
@@ -131,9 +266,6 @@ module.exports = grammar(goGrammar, {
 
     spread_attribute: $ => seq('{', field('value', $._expression), '...', '}'),
 
-    // Condition shape mirrors 2a's control_flow (reuses Go's own for_clause/
-    // range_clause, not reimplemented), applied to a repeated ATTRIBUTE list
-    // instead of a repeated CHILD list.
     conditional_attribute: $ => seq(
       '{',
       alias(choice('if', 'for'), $.keyword),
@@ -149,10 +281,6 @@ module.exports = grammar(goGrammar, {
       '{', repeat($.attribute), '}',
     ),
 
-    // '<>'/'</>' as single atomic tokens (not seq('<', '>')) — matters:
-    // a naive two-literal seq lets the parser fork into element's
-    // '<' + identifier path first and error out on '>' instead of
-    // choosing fragment.
     fragment: $ => seq(
       token(seq('<', '>')),
       repeat($._child),
@@ -160,25 +288,61 @@ module.exports = grammar(goGrammar, {
     ),
 
     _child: $ => choice(
+      $.raw_element,
       $.element,
       $.fragment,
+      $.doctype,
+      $.html_comment,
+      $.content_comment,
       $.hole,
+      $.go_block,
       $.control_flow,
       $.text,
     ),
 
-    // Hole body is a real Go expression — element/fragment already
-    // included via _expression (Phase 1). No separate node-sequence
-    // alternative: every real standalone-hole usage in the legacy corpus
-    // is a single node, and elements are already Go expressions.
+    // <script>/<style> raw-text elements: bodies are NOT markup (braces are
+    // literal). Interpolation is @{ expr } (at_hole), same as f/js/css
+    // literals — raw_text (external scanner) stops before @{ or the matching
+    // </script>/</style>. The close tag name is a plain identifier
+    // (case-insensitive match handled by the scanner's stop, node is generic).
+    raw_element: $ => seq(
+      '<', field('open_name', alias($._raw_tag_token, $.tag_name)),
+      repeat($.attribute), '>',
+      repeat(choice($.raw_text, $.at_hole)),
+      '</', field('close_name', alias(/[A-Za-z]+/, $.tag_name)), '>',
+    ),
+    // script/style tag-name token with precedence over `identifier` so a
+    // raw-text element wins over a regular element at `<script`/`<style`.
+    _raw_tag_token: $ => token(prec(1, /[Ss][Cc][Rr][Ii][Pp][Tt]|[Ss][Tt][Yy][Ll][Ee]/)),
+
+    // {{ Go statements }} — the escape hatch for pure statements between
+    // markup siblings. Body is Go statements (native), reusing Go's own
+    // statement_list.
+    go_block: $ => seq('{{', optional($.statement_list), '}}'),
+
+    // <!DOCTYPE html>
+    doctype: $ => seq('<!', /[Dd][Oo][Cc][Tt][Yy][Pp][Ee]/, /[^>]*/, '>'),
+
+    // <!-- comment -->
+    html_comment: $ => seq('<!--', /([^-]|-[^-]|--[^>])*/, '-->'),
+
+    // Comment-only brace: block {/* … */} or line {// … \n}. Valid in both
+    // child and attribute position.
+    content_comment: $ => choice(
+      seq('{/*', /([^*]|\*[^/])*/, '*/}'),
+      seq(token(seq('{//', /[^\n]*/)), '}'),
+    ),
+
+    // Prototype-only: hole body is just a real Go expression (element/fragment
+    // already included via _expression). Testing whether this is sufficient
+    // vs. needing a separate markup-sequence alternative.
     hole: $ => seq('{', $._expression, '}'),
 
-    // Condition reuses Go's own for_statement condition shape (plain
-    // expr, or a real for_clause/range_clause for `for`) — inherited
-    // from the base grammar unmodified, not reimplemented. The block
-    // body is markup children, not Go statements, so control_flow can't
-    // reuse Go's native if_statement/for_statement wholesale (their
-    // block holds $._statement).
+    // Prototype-only: condition reuses Go's own for_statement condition shape
+    // (plain expr, or a real for_clause/range_clause for `for`) — no
+    // go_cond_text scanner needed; the block body is markup children, not Go
+    // statements (can't reuse Go's native if_statement — its block holds
+    // _statement).
     control_flow: $ => seq(
       '{',
       alias(choice('if', 'for', 'switch'), $.keyword),

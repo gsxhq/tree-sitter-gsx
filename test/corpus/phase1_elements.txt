@@ -22,7 +22,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)))))))))
+                name: (tag_name)))))))))
 
 ==================
 element open/close with plain text in var-decl value
@@ -48,9 +48,9 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 fragment with plain text in var-decl value
@@ -103,7 +103,7 @@ func f() gsx.Node {
         (return_statement
           (expression_list
             (element
-              name: (identifier))))))))
+              name: (tag_name))))))))
 
 ==================
 element open/close with inline text as a return value
@@ -130,9 +130,9 @@ func render() gsx.Node {
         (return_statement
           (expression_list
             (element
-              open_name: (identifier)
+              open_name: (tag_name)
               (text)
-              close_name: (identifier))))))))
+              close_name: (tag_name))))))))
 
 ==================
 element as a call argument
@@ -158,7 +158,7 @@ func f() {
             function: (identifier)
             arguments: (argument_list
               (element
-                name: (identifier)))))))))
+                name: (tag_name)))))))))
 
 ==================
 element as a positional composite-literal value
@@ -191,10 +191,10 @@ func f() {
                 body: (literal_value
                   (literal_element
                     (element
-                      name: (identifier)))
+                      name: (tag_name)))
                   (literal_element
                     (element
-                      name: (identifier))))))))))))
+                      name: (tag_name))))))))))))
 
 ==================
 element as a keyed struct-literal field
@@ -227,7 +227,7 @@ func f() {
                       (identifier))
                     value: (literal_element
                       (element
-                        name: (identifier)))))))))))))
+                        name: (tag_name)))))))))))))
 
 ==================
 element as a plain assignment target value
@@ -260,7 +260,7 @@ func f() {
             (identifier))
           right: (expression_list
             (element
-              name: (identifier))))))))
+              name: (tag_name))))))))
 
 ==================
 regression: spaced less-than stays a comparison, not markup

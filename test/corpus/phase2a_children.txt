@@ -22,17 +22,17 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (text)
                 (element
-                  open_name: (identifier)
+                  open_name: (tag_name)
                   (text)
-                  close_name: (identifier))
+                  close_name: (tag_name))
                 (text)
                 (hole
                   (identifier))
                 (text)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 empty children
@@ -58,8 +58,8 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
-                close_name: (identifier)))))))))
+                open_name: (tag_name)
+                close_name: (tag_name)))))))))
 
 ==================
 hole containing a plain identifier
@@ -85,10 +85,10 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (hole
                   (identifier))
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 nested fragment as a child
@@ -114,9 +114,9 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (fragment)
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))
 
 ==================
 hole containing an element (hole is a real Go expression)
@@ -142,11 +142,11 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (hole
                   (element
-                    name: (identifier)))
-                close_name: (identifier)))))))))
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
 
 ==================
 bare self-closing element is unaffected by children support
@@ -172,7 +172,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                name: (identifier)))))))))
+                name: (tag_name)))))))))
 
 ==================
 if control-flow with a plain expression condition
@@ -198,13 +198,13 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (identifier)
                   (element
-                    name: (identifier)))
-                close_name: (identifier)))))))))
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
 
 ==================
 for control-flow with a range clause
@@ -230,7 +230,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (range_clause
@@ -239,13 +239,13 @@ func f() {
                       (identifier))
                     right: (identifier))
                   (element
-                    open_name: (identifier)
+                    open_name: (tag_name)
                     (hole
                       (selector_expression
                         operand: (identifier)
                         field: (field_identifier)))
-                    close_name: (identifier)))
-                close_name: (identifier)))))))))
+                    close_name: (tag_name)))
+                close_name: (tag_name)))))))))
 
 ==================
 if-else control-flow
@@ -271,17 +271,17 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (identifier)
                   (element
-                    name: (identifier))
+                    name: (tag_name))
                   (else_clause
                     (keyword)
                     (element
-                      name: (identifier))))
-                close_name: (identifier)))))))))
+                      name: (tag_name))))
+                close_name: (tag_name)))))))))
 
 ==================
 if-else-if-else chain
@@ -307,23 +307,23 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (identifier)
                   (element
-                    name: (identifier))
+                    name: (tag_name))
                   (else_clause
                     (keyword)
                     (keyword)
                     condition: (identifier)
                     (element
-                      name: (identifier)))
+                      name: (tag_name)))
                   (else_clause
                     (keyword)
                     (element
-                      name: (identifier))))
-                close_name: (identifier)))))))))
+                      name: (tag_name))))
+                close_name: (tag_name)))))))))
 
 ==================
 switch control-flow (case/default lines are inert text, matching the pre-existing shipped grammar's own design)
@@ -354,17 +354,17 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (identifier)
                   (text)
                   (element
-                    name: (identifier))
+                    name: (tag_name))
                   (text)
                   (element
-                    name: (identifier)))
-                close_name: (identifier)))))))))
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
 
 ==================
 if-else control-flow with plain-text bodies (no trailing element/hole)
@@ -390,7 +390,7 @@ func f() {
             name: (identifier)
             value: (expression_list
               (element
-                open_name: (identifier)
+                open_name: (tag_name)
                 (control_flow
                   (keyword)
                   condition: (identifier)
@@ -398,4 +398,4 @@ func f() {
                   (else_clause
                     (keyword)
                     (text)))
-                close_name: (identifier)))))))))
+                close_name: (tag_name)))))))))

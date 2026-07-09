@@ -252,3 +252,63 @@ parses correctly inside the outer ERROR. Blockers, by frequency:
   tracked (see "Capability regressions" at the top of this file).
 - `doctype` / `raw_element` / `content_comment` (several files) — the
   already-listed 2d deferrals above.
+
+## Feature-complete grammar (composable class + go_block + dotted/hyphenated tags + doctype/comments + raw_element)
+
+Landed together after prototyping the full set and proving all 13 real
+`.gsx` example files parse with **zero ERRORs** (restored to `test/examples/`;
+CI parses them). This closes the grammar-feature gap the Phase 2d final
+review surfaced. Key rules and findings:
+
+- **Composable `class`/`style` values** — `composable_attribute`:
+  a comma-list of `class_part`s (`expr`, optional `|>` stages, optional
+  `: cond` guard) and value-form arms (`class_if_form` / `class_switch_form`
+  with `class_switch_case` for `case L,L: body`/`default:`). Distinguished
+  from single-expression `expr_attribute` by **value shape, not attribute
+  name**: a single bare expr stays `expr_attribute`; 2+ parts or a
+  guard/stage/value-form is composable (one declared conflict
+  `[class_part, composable_first_part]` resolves the single-vs-multi
+  first-part reduction). Name-special-casing was tried and rejected — literal
+  `class`/`style` keyword tokens shadow `attribute_name` and fight the lexer;
+  value-shape sidesteps it. (Compiler enforces "composable is class/style
+  only"; tree-sitter is a highlighter and over-accepts a composable value on
+  any name — invisible in practice.) Value-form block bodies use `_class_body`
+  (single bare expr OK) vs the attribute-value `_composable_value` (no single
+  bare expr) — two rules, because a lone `{ "x" }` is `expr_attribute` at the
+  value position but a valid class body inside a block.
+- **`conflicts` composition REPLACES, doesn't merge.** Adding any
+  `conflicts` array in the overrides drops tree-sitter-go's own 8 internal
+  conflicts (resurfacing e.g. `identifier '.'` selector-vs-qualified_type
+  ambiguity). Go's 8 are re-included verbatim in `grammar.js` — re-verify on
+  every upstream bump (same maintenance note as `_expression`/
+  `_top_level_declaration`).
+- **`tag_name` is one token** (`/[A-Za-z][A-Za-z0-9.\-]*/`) covering plain
+  (`<div>`), dotted (`<ui.Button>`, `<p.Content>`), and hyphenated
+  custom-element (`<el-dialog>`, `<turbo-frame>`) names. A dedicated token
+  (not composed identifiers) because a hyphen can't be a token boundary (it's
+  the minus operator). It does NOT shadow Go's `identifier` — tree-sitter's
+  lexer is context-sensitive, so `tag_name` is only a candidate right after a
+  markup `<`. (This changed all element name nodes from `identifier` to
+  `tag_name` — corpus regenerated.)
+- **f/js/css prefix+delimiter is now ONE token** (`` f` ``, `f"`, `js` `` … ``,
+  aliased to `embedded_open`) — fixes a **real pre-existing Phase 2c bug**: the
+  bare `'f'`/`'js'`/`'css'` string tokens shadowed Go identifiers named
+  exactly `f`/`js`/`css` (a receiver named `f` — as in `11_struct_methods.gsx`
+  — broke, running an `embedded_text` scan to EOF). Combining prefix+delimiter
+  means `f` alone is never a special token. (Changed `embedded_language` →
+  `embedded_open`; corpus regenerated.)
+- **`raw_element`** (`<script>`/`<style>`): second external-scanner function
+  `scan_raw_text` (lifted from the shipped scanner) — raw body stops before an
+  `@{` hole or the matching `</script>`/`</style>`; interpolation is `@{ }`
+  (at_hole), literal `{`/`<` are ordinary raw content. Wins over regular
+  `element` via a context-sensitive `_raw_tag_token` (`token(prec(1, …))`) —
+  also no Go-identifier shadowing (verified `script`/`style` as Go vars parse
+  fine).
+- **`go_block` `{{ … }}`** reuses Go's own `statement_list`. **`doctype`**,
+  **`html_comment`**, **`content_comment`** (`{/* */}` / `{// }`) are
+  scanner-free regex rules added to `_child` (content_comment also in
+  attribute position is still deferred — a follow-up).
+- **Still deferred** (safe visible ERRORs, tracked): `switch`-with-initializer
+  in markup control_flow (2a); the two embedded-literal escape-fidelity edges
+  (2c backlog); `content_comment` in attribute position; `css_composed_value`
+  as a distinct multi-segment style form.
