@@ -184,3 +184,36 @@ the phase sequence, not a blocker for 2d. Fix in a dedicated pass, with
 new corpus cases pinning both the fix and the already-working basic
 escape case (`` f`a \`esc\` b` ``, verified working but not yet pinned in
 `test/corpus/phase2c_literals.txt`).
+
+## Phase 2d notes (component declarations)
+
+- `component_declaration`'s receiver, parameters, and type parameters
+  reuse Go's own `parameter_list`/`type_parameter_list` **verbatim** — no
+  custom regex-blob capture (`_paren_go`/`_bracket_go` in the old
+  grammar). Now that Go is native, `component (p Page) Content()` gets a
+  real `receiver: (parameter_list (parameter_declaration name: … type:
+  …))`, and `component List[T any](…)` gets a real
+  `type_parameter_list`, with full type-aware structure for free. The
+  receiver-as-`parameter_list` shape mirrors Go's own
+  `method_declaration`.
+- `component_declaration` joins a **redeclared `_top_level_declaration`**
+  (package/function/method/import + component) — the same
+  rule-names-only redeclaration pattern Phase 1 used for `_expression`,
+  and the same maintenance note applies: eyeball this list against
+  tree-sitter-go's own `_top_level_declaration` on every upstream version
+  bump (a new top-level declaration kind added upstream needs a matching
+  addition here). Low-frequency — it's Go's top-level enumeration, rarely
+  changed.
+- `component_body` is its own named node (not element's inline children)
+  so consumers can distinguish a component body from element children by
+  node type — matches the old grammar's separate `body` node. Its content
+  is 2a's `_child`, so component bodies get text/nested-markup/holes/
+  control-flow with no new child-content grammar.
+- The `mycomponent` keyword-boundary case (an identifier that starts with
+  `component`) parses as a normal `var_declaration`, not a mis-lexed
+  keyword — pinned by corpus, as the old grammar also tested.
+- No external scanner added — `src/scanner.c` (from 2c) is untouched.
+- Deferred (see the Phase 2d spec): `doctype`, `html_comment`,
+  `raw_element` (`<script>`/`<style>` raw-text — needs its own scanner),
+  `content_comment` — all independent child-content types, to be scoped
+  by 2e (full corpus port) or a dedicated follow-up.

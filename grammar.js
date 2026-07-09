@@ -6,6 +6,32 @@ module.exports = grammar(goGrammar, {
   externals: $ => [$.embedded_text, $.embedded_text_dq],
 
   rules: {
+    // Redeclares Go's own top-level-declaration choice list (rule NAMES
+    // only) plus component_declaration — same redeclaration pattern as
+    // _expression in Phase 1. Verify this list against tree-sitter-go's
+    // _top_level_declaration on every upstream version bump.
+    _top_level_declaration: $ => choice(
+      $.package_clause,
+      $.function_declaration,
+      $.method_declaration,
+      $.import_declaration,
+      $.component_declaration,
+    ),
+
+    // Reuses Go's own parameter_list (receiver + parameters) and
+    // type_parameter_list (generics) verbatim — no custom regex-blob
+    // capture needed now that Go is native. Body is 2a's _child grammar.
+    component_declaration: $ => seq(
+      'component',
+      optional(field('receiver', $.parameter_list)),
+      field('name', $.identifier),
+      optional(field('type_parameters', $.type_parameter_list)),
+      field('parameters', $.parameter_list),
+      field('body', $.component_body),
+    ),
+
+    component_body: $ => seq('{', repeat($._child), '}'),
+
     // Redeclares Go's _expression alternative list (rule NAMES only —
     // each rule's own body stays inherited/untouched from goGrammar)
     // plus element/fragment. Verify this list against tree-sitter-go's
