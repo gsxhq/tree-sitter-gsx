@@ -1,0 +1,3 @@
+package views
+
+component C(a bool, x string, n int) { <div { if a { data-x={x} } else { data-n={n} } }>y</div> }

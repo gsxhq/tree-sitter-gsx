@@ -1,0 +1,5 @@
+package views
+
+import "github.com/gsxhq/gsx"
+
+component X(children gsx.Node) { <div>{children}</div> }

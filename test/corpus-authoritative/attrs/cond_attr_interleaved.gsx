@@ -1,0 +1,3 @@
+package views
+
+component C(a bool, s string, n int, f float64) { <div data-s={s} { if a { data-x={n} } } data-f={f}>{ n }</div> }

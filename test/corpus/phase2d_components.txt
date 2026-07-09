@@ -1,0 +1,269 @@
+==================
+simple component with an element body
+==================
+
+package views
+
+component Foo() {
+	<div>hello</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (text)
+        close_name: (tag_name)))))
+
+==================
+component with typed parameters
+==================
+
+package views
+
+component Card(title string, count int) {
+	<div class="card">{title}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier))
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (static_attribute
+            name: (attribute_name)
+            value: (interpreted_string_literal
+              (interpreted_string_literal_content))))
+        (hole
+          (identifier))
+        close_name: (tag_name)))))
+
+==================
+method component with a receiver
+==================
+
+package views
+
+component (p Page) Content() {
+	<div>{p.Title}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    receiver: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (selector_expression
+            operand: (identifier)
+            field: (field_identifier)))
+        close_name: (tag_name)))))
+
+==================
+generic component with a type parameter
+==================
+
+package views
+
+component List[T any](items []T) {
+	<ul>{ for _, it := range items { <li>{it}</li> } }</ul>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    type_parameters: (type_parameter_list
+      (type_parameter_declaration
+        name: (identifier)
+        type: (type_constraint
+          (type_identifier))))
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (slice_type
+          element: (type_identifier))))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (control_flow
+          (keyword)
+          condition: (range_clause
+            left: (expression_list
+              (identifier)
+              (identifier))
+            right: (identifier))
+          (element
+            open_name: (tag_name)
+            (hole
+              (identifier))
+            close_name: (tag_name)))
+        close_name: (tag_name)))))
+
+==================
+two adjacent components
+==================
+
+package views
+component A() {}
+component B() {}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body)))
+
+==================
+identifier ending in component is not a keyword
+==================
+
+package views
+
+var mycomponent = 1
+
+component X() {}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (var_declaration
+    (var_spec
+      name: (identifier)
+      value: (expression_list
+        (int_literal))))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body)))
+
+==================
+component alongside a real Go function declaration
+==================
+
+package views
+
+func helper() int { return 1 }
+
+component Foo() {
+	<div>{helper()}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    result: (type_identifier)
+    body: (block
+      (statement_list
+        (return_statement
+          (expression_list
+            (int_literal))))))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (call_expression
+            function: (identifier)
+            arguments: (argument_list)))
+        close_name: (tag_name)))))
+
+==================
+component with an empty body
+==================
+
+package views
+component Empty() {}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body)))
+
+==================
+component coexists with a Phase 1 top-level element value
+==================
+
+package views
+
+var icon = <Icon/>
+
+component Foo() {
+	<div>{icon}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (var_declaration
+    (var_spec
+      name: (identifier)
+      value: (expression_list
+        (element
+          name: (tag_name)))))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (identifier))
+        close_name: (tag_name)))))

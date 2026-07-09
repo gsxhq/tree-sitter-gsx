@@ -1,0 +1,12 @@
+package views
+
+import "github.com/gsxhq/gsx"
+
+component Panel(header gsx.Node) {
+	<div>{header}</div>
+}
+
+component Page(title string, xs []string) {
+	<Panel header={ <h1>{title}</h1> }/>
+	{ for _, x := range xs { <Panel header={ <b>{x}</b> }/> } }
+}

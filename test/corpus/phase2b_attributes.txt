@@ -1,0 +1,467 @@
+==================
+static, bool, expr, and spread attributes on a self-closing tag
+==================
+
+package main
+func f() {
+	var x = <div class="x" disabled data={y} {attrs...}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (attribute
+                  (bool_attribute
+                    name: (attribute_name)))
+                (attribute
+                  (expr_attribute
+                    name: (attribute_name)
+                    value: (hole
+                      (identifier))))
+                (attribute
+                  (spread_attribute
+                    value: (identifier)))))))))))
+
+==================
+attributes on an open-tag form (not just self-closing)
+==================
+
+package main
+func f() {
+	var x = <div class="x">child</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (text)
+                close_name: (tag_name)))))))))
+
+==================
+conditional attribute with if-else, nested static attributes
+==================
+
+package main
+func f() {
+	var x = <div {if cond { class="active" } else { class="inactive" }}>x</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (identifier)
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))
+                (text)
+                close_name: (tag_name)))))))))
+
+==================
+backtick (raw) string attribute value
+==================
+
+package main
+func f() {
+	var x = <div class=`raw string`/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (raw_string_literal
+                      (raw_string_literal_content))))))))))))
+
+==================
+attribute_name extended character set (dash, colon, at-sign)
+==================
+
+package main
+func f() {
+	var x = <div data-x="a" aria:label="b" @click={fn}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (attribute
+                  (expr_attribute
+                    name: (attribute_name)
+                    value: (hole
+                      (identifier))))))))))))
+
+==================
+conditional attribute mixed with static and bool attributes, if with no else
+==================
+
+package main
+func f() {
+	var x = <div id="x" {if a { class="b" }} disabled/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (identifier)
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))))
+                (attribute
+                  (bool_attribute
+                    name: (attribute_name)))))))))))
+
+==================
+variadic Go call inside expr_attribute disambiguates from spread_attribute
+==================
+
+package main
+func f() {
+	var x = <div data={fn(args...)}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (expr_attribute
+                    name: (attribute_name)
+                    value: (hole
+                      (call_expression
+                        function: (identifier)
+                        arguments: (argument_list
+                          (variadic_argument
+                            (identifier)))))))))))))))
+
+==================
+expr_attribute and spread_attribute back to back
+==================
+
+package main
+func f() {
+	var x = <div data={fn(a, b)} {spreadme...}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (expr_attribute
+                    name: (attribute_name)
+                    value: (hole
+                      (call_expression
+                        function: (identifier)
+                        arguments: (argument_list
+                          (identifier)
+                          (identifier))))))
+                (attribute
+                  (spread_attribute
+                    value: (identifier)))))))))))
+
+==================
+conditional attribute as the last attribute before the closing tag
+==================
+
+package main
+func f() {
+	var x = <div class="x" {if cond { disabled }}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (interpreted_string_literal
+                      (interpreted_string_literal_content))))
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (identifier)
+                    (attribute
+                      (bool_attribute
+                        name: (attribute_name)))))))))))))
+
+==================
+conditional attribute with an else-if chain (matches the canonical gsx corpus's cond_attr_else_if_two.txtar)
+==================
+
+package main
+func f() {
+	var x = <div {if n == 1 { class="one" } else if n == 2 { class="two" } else { class="other" }}>z</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (binary_expression
+                      left: (identifier)
+                      right: (int_literal))
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))
+                (text)
+                close_name: (tag_name)))))))))
+
+==================
+conditional attribute with a three-branch else-if chain
+==================
+
+package main
+func f() {
+	var x = <div {if n == 1 { class="one" } else if n == 2 { class="two" } else if n == 3 { class="three" } else { class="other" }}/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (conditional_attribute
+                    (keyword)
+                    condition: (binary_expression
+                      left: (identifier)
+                      right: (int_literal))
+                    (attribute
+                      (static_attribute
+                        name: (attribute_name)
+                        value: (interpreted_string_literal
+                          (interpreted_string_literal_content))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (keyword)
+                      condition: (binary_expression
+                        left: (identifier)
+                        right: (int_literal))
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))
+                    (attribute_else_clause
+                      (keyword)
+                      (attribute
+                        (static_attribute
+                          name: (attribute_name)
+                          value: (interpreted_string_literal
+                            (interpreted_string_literal_content)))))))))))))))

@@ -1,0 +1,5 @@
+package views
+
+component Page() {
+	<div x-on:click="@{ stmt } = 1">x</div>
+}

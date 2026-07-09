@@ -1,0 +1,401 @@
+==================
+mixed text, nested element, and a hole in one body
+==================
+
+package main
+func f() {
+	var x = <div>Hello <b>world</b>, you have {count} items</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (text)
+                (element
+                  open_name: (tag_name)
+                  (text)
+                  close_name: (tag_name))
+                (text)
+                (hole
+                  (identifier))
+                (text)
+                close_name: (tag_name)))))))))
+
+==================
+empty children
+==================
+
+package main
+func f() {
+	var x = <div></div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                close_name: (tag_name)))))))))
+
+==================
+hole containing a plain identifier
+==================
+
+package main
+func f() {
+	var x = <div>{x}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (hole
+                  (identifier))
+                close_name: (tag_name)))))))))
+
+==================
+nested fragment as a child
+==================
+
+package main
+func f() {
+	var x = <div><></></div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (fragment)
+                close_name: (tag_name)))))))))
+
+==================
+hole containing an element (hole is a real Go expression)
+==================
+
+package main
+func f() {
+	var x = <div>{<Icon/>}</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (hole
+                  (element
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
+
+==================
+bare self-closing element is unaffected by children support
+==================
+
+package main
+func f() {
+	var x = <Icon/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)))))))))
+
+==================
+if control-flow with a plain expression condition
+==================
+
+package main
+func f() {
+	var x = <div>{ if cond { <span/> } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (element
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
+
+==================
+for control-flow with a range clause
+==================
+
+package main
+func f() {
+	var x = <div>{ for _, it := range items { <li>{it.Name}</li> } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (range_clause
+                    left: (expression_list
+                      (identifier)
+                      (identifier))
+                    right: (identifier))
+                  (element
+                    open_name: (tag_name)
+                    (hole
+                      (selector_expression
+                        operand: (identifier)
+                        field: (field_identifier)))
+                    close_name: (tag_name)))
+                close_name: (tag_name)))))))))
+
+==================
+if-else control-flow
+==================
+
+package main
+func f() {
+	var x = <div>{ if cond { <span/> } else { <div/> } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (element
+                    name: (tag_name))
+                  (else_clause
+                    (keyword)
+                    (element
+                      name: (tag_name))))
+                close_name: (tag_name)))))))))
+
+==================
+if-else-if-else chain
+==================
+
+package main
+func f() {
+	var x = <div>{ if a { <span/> } else if b { <div/> } else { <p/> } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (element
+                    name: (tag_name))
+                  (else_clause
+                    (keyword)
+                    (keyword)
+                    condition: (identifier)
+                    (element
+                      name: (tag_name)))
+                  (else_clause
+                    (keyword)
+                    (element
+                      name: (tag_name))))
+                close_name: (tag_name)))))))))
+
+==================
+switch control-flow (case/default lines are inert text, matching the pre-existing shipped grammar's own design)
+==================
+
+package main
+func f() {
+	var x = <div>{ switch status {
+	case "ok":
+		<span/>
+	default:
+		<div/>
+	} }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (text)
+                  (element
+                    name: (tag_name))
+                  (text)
+                  (element
+                    name: (tag_name)))
+                close_name: (tag_name)))))))))
+
+==================
+if-else control-flow with plain-text bodies (no trailing element/hole)
+==================
+
+package main
+func f() {
+	var x = <div>{ if loggedIn { Welcome } else { Please log in } }</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                open_name: (tag_name)
+                (control_flow
+                  (keyword)
+                  condition: (identifier)
+                  (text)
+                  (else_clause
+                    (keyword)
+                    (text)))
+                close_name: (tag_name)))))))))

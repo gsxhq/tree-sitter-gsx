@@ -1,0 +1,627 @@
+==================
+composable class: multi-part list with conditional part
+==================
+
+package v
+component C(active bool, class string) { <a class={ "flex gap-2", "bg-active": active, class }>x</a> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier))
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (class_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content)))
+            (class_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              cond: (identifier))
+            (class_part
+              expr: (identifier))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+composable class: single piped part
+==================
+
+package v
+component C() { <div class={ x |> upper }>y</div> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (identifier)
+              (identifier))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+composable class: if/else value-form
+==================
+
+package v
+component C(on bool) { <i class={ "ico", if on { "ico-on" } else { "ico-off" } }>y</i> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (class_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content)))
+            (class_part
+              (class_value_form
+                (class_if_form
+                  (keyword)
+                  condition: (identifier)
+                  (class_part
+                    expr: (interpreted_string_literal
+                      (interpreted_string_literal_content)))
+                  (class_else_clause
+                    (keyword)
+                    (class_part
+                      expr: (interpreted_string_literal
+                        (interpreted_string_literal_content)))))))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+composable class: switch value-form with multi-case and default
+==================
+
+package v
+component C(variant int) { <span class={ "base", switch variant { case 1: "green" case 2, 3: "amber" default: "gray" } }>x</span> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (class_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content)))
+            (class_part
+              (class_value_form
+                (class_switch_form
+                  (keyword)
+                  condition: (identifier)
+                  (class_switch_case
+                    (keyword)
+                    (int_literal)
+                    (class_part
+                      expr: (interpreted_string_literal
+                        (interpreted_string_literal_content))))
+                  (class_switch_case
+                    (keyword)
+                    (int_literal)
+                    (int_literal)
+                    (class_part
+                      expr: (interpreted_string_literal
+                        (interpreted_string_literal_content))))
+                  (class_switch_case
+                    (keyword)
+                    (class_part
+                      expr: (interpreted_string_literal
+                        (interpreted_string_literal_content)))))))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+composable style value
+==================
+
+package v
+component C(on bool) { <div style={ "color: red": on }>y</div> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (composable_first_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              cond: (identifier))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+single-expr class value stays a plain expr_attribute (not composable)
+==================
+
+package v
+component C(class string) { <div class={class}>x</div> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (identifier))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+dotted/qualified tag name (component invocation)
+==================
+
+package v
+component C() { <ui.Button variant="primary">Go</ui.Button> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (static_attribute
+            name: (attribute_name)
+            value: (interpreted_string_literal
+              (interpreted_string_literal_content))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+hyphenated custom-element tag name
+==================
+
+package v
+component C() { <el-dialog open><turbo-frame id="m"></turbo-frame></el-dialog> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (bool_attribute
+            name: (attribute_name)))
+        (element
+          open_name: (tag_name)
+          (attribute
+            (static_attribute
+              name: (attribute_name)
+              value: (interpreted_string_literal
+                (interpreted_string_literal_content))))
+          close_name: (tag_name))
+        close_name: (tag_name)))))
+
+==================
+go_block statement escape hatch
+==================
+
+package v
+component C() {
+	{{ heading := "Reports" }}
+	<h1>{heading}</h1>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (go_block
+        (statement_list
+          (short_var_declaration
+            left: (expression_list
+              (identifier))
+            right: (expression_list
+              (interpreted_string_literal
+                (interpreted_string_literal_content))))))
+      (element
+        open_name: (tag_name)
+        (hole
+          (identifier))
+        close_name: (tag_name)))))
+
+==================
+doctype and html comment
+==================
+
+package v
+component C() { <html><!DOCTYPE html><body><!-- injected --></body></html> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (doctype)
+        (element
+          open_name: (tag_name)
+          (html_comment)
+          close_name: (tag_name))
+        close_name: (tag_name)))))
+
+==================
+content comment block and line forms
+==================
+
+package v
+component C() {
+	<a href={u}>link</a> {/* auto-sanitized */}
+	{// a line comment
+}
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (identifier))))
+        (text)
+        close_name: (tag_name))
+      (content_comment)
+      (content_comment))))
+
+==================
+raw_element script with @{ } interpolation and literal braces
+==================
+
+package v
+component Page(nonce string) {
+	<script nonce={nonce}>
+		const config = { retries: 3 };
+		const p = @{ nonce };
+	</script>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (raw_element
+        open_name: (tag_name)
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (identifier))))
+        (raw_text)
+        (at_hole
+          (identifier))
+        (raw_text)
+        close_name: (tag_name)))))
+
+==================
+raw_element style with literal braces
+==================
+
+package v
+component C(accent string) {
+	<style>
+		.box { color: @{accent}; }
+	</style>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (raw_element
+        open_name: (tag_name)
+        (raw_text)
+        (at_hole
+          (identifier))
+        (raw_text)
+        close_name: (tag_name)))))
+
+==================
+regression: a Go identifier named f/js/css is not mis-lexed as an embedded literal
+==================
+
+package v
+component (f *EditForm) M(name string) {
+	<input { if f.Errors[name] != "" { aria-invalid="true" } }/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    receiver: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (pointer_type
+          (type_identifier))))
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        name: (tag_name)
+        (attribute
+          (conditional_attribute
+            (keyword)
+            condition: (binary_expression
+              left: (index_expression
+                operand: (selector_expression
+                  operand: (identifier)
+                  field: (field_identifier))
+                index: (identifier))
+              right: (interpreted_string_literal))
+            (attribute
+              (static_attribute
+                name: (attribute_name)
+                value: (interpreted_string_literal
+                  (interpreted_string_literal_content))))))))))
+
+==================
+control_flow if with an initializer (if x := f(); cond)
+==================
+
+package v
+component C() { <p>{ if msg := errs[name]; msg != "" { <span>{msg}</span> } }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (control_flow
+          (keyword)
+          initializer: (short_var_declaration
+            left: (expression_list
+              (identifier))
+            right: (expression_list
+              (index_expression
+                operand: (identifier)
+                index: (identifier))))
+          condition: (binary_expression
+            left: (identifier)
+            right: (interpreted_string_literal))
+          (element
+            open_name: (tag_name)
+            (hole
+              (identifier))
+            close_name: (tag_name)))
+        close_name: (tag_name)))))
+
+==================
+pipeline in a plain hole
+==================
+
+package v
+component C(name string) { <p>{ name |> upper }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (identifier)
+          (identifier))
+        close_name: (tag_name)))))
+
+==================
+generic component tag with type arguments
+==================
+
+package v
+component C() { <Box[int] value={7}/> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        name: (tag_name)
+        type_arguments: (type_arguments
+          (type_elem
+            (type_identifier)))
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (int_literal))))))))
+
+==================
+ordered-attrs literal value name={{ pair, pair }}
+==================
+
+package v
+component C() { <Card toggle-attrs={{ "data-show": true, "data-hide": false }}/> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        name: (tag_name)
+        (attribute
+          (ordered_attrs_attribute
+            name: (attribute_name)
+            (attr_pair
+              key: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              value: (true))
+            (attr_pair
+              key: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              value: (false))))))))
+
+==================
+embedded literal escapes: \@{ is literal (not a hole), real @{ } interpolates
+==================
+
+package v
+component C() { <p>{ f`a \@{lit} b @{real} c` }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (embedded_f_literal
+            (embedded_open)
+            (embedded_text)
+            (at_hole
+              (identifier))
+            (embedded_text)))
+        close_name: (tag_name)))))

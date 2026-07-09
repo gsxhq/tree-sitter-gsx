@@ -13,4 +13,13 @@ jobs:
         run: git diff --exit-code -- src/
       - run: npx tree-sitter test
       - name: Parse examples (zero errors)
-        run: for f in test/examples/*.gsx; do npx tree-sitter parse -q "$f"; done
+        run: |
+          shopt -s nullglob
+          examples=(test/examples/*.gsx)
+          if [ ${#examples[@]} -eq 0 ]; then
+            echo "no test/examples/*.gsx"
+            exit 0
+          fi
+          for f in "${examples[@]}"; do npx tree-sitter parse -q "$f"; done
+      - name: Authoritative corpus parse gate (vendored from gsx repo)
+        run: npm run test:authoritative

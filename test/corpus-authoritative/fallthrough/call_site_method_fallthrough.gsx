@@ -1,0 +1,11 @@
+package views
+
+type Pg struct{}
+
+component (p Pg) Btn(variant string) {
+	<button data-variant={variant} { attrs... }>{children}</button>
+}
+
+component (p Pg) Page() {
+	<p.Btn variant="primary" data-test="x">Go</p.Btn>
+}
