@@ -44,11 +44,12 @@ function resolveGsxRepo() {
 //     tests). tree-sitter correctly ERRORs too, so they don't belong in a
 //     zero-ERROR gate. (Verified against each case's diagnostics.golden.)
 //
-// (B) Known niche grammar limitations — valid gsx the unified grammar does
-//     not yet parse. All fail as visible ERRORs (safe), and all are rare
-//     edge forms whose common variants DO parse. Tracked here as follow-ups.
+// Only kind (A) remains: intentionally syntactically-invalid fixtures that
+// gsx's own PARSER rejects — tree-sitter correctly ERRORs too, so they don't
+// belong in a zero-ERROR gate. (Every one verified against its
+// diagnostics.golden.) The earlier "(B) niche limitations" are now all
+// implemented and back in the gate.
 const SKIP = new Set([
-  // (A) parser-rejected / intentionally-invalid syntax
   'attrs/spread_leading_rejected',
   'class/missing_comma_rejected',
   'components/child_prop_try_error',
@@ -67,11 +68,6 @@ const SKIP = new Set([
   'props/byo_splat_empty_rejected',
   'props/byo_splat_mixed_rejected',
   'style/block_try_rejected',
-  // (B) known niche limitations (valid gsx, not yet parsed — safe ERRORs)
-  'class/value_switch_type_switch',        // type-switch (v.(type)) in a class value-form
-  'control_flow/value_switch_braced',      // braced case bodies: `case 1: { "x" }`
-  'jsattr/explicit_attr_braced',           // js/css literal inside a { } hole: `{js`…`}`
-  'style/composed_css_literal',            // css`…` literal as a composable style part
 ])
 
 // Recursively list *.txtar under a dir.

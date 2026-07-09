@@ -879,6 +879,14 @@
           {
             "type": "_expression",
             "named": true
+          },
+          {
+            "type": "embedded_css_literal",
+            "named": true
+          },
+          {
+            "type": "embedded_js_literal",
+            "named": true
           }
         ]
       },
@@ -932,12 +940,28 @@
     "named": true,
     "fields": {
       "condition": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
           {
+            "type": "(",
+            "named": false
+          },
+          {
+            "type": ")",
+            "named": false
+          },
+          {
+            "type": ".",
+            "named": false
+          },
+          {
             "type": "_expression",
             "named": true
+          },
+          {
+            "type": "type",
+            "named": false
           }
         ]
       }
@@ -2343,6 +2367,14 @@
       "types": [
         {
           "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "embedded_css_literal",
+          "named": true
+        },
+        {
+          "type": "embedded_js_literal",
           "named": true
         }
       ]

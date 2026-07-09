@@ -211,7 +211,7 @@ module.exports = grammar(goGrammar, {
     class_part: $ => choice(
       $.class_value_form,
       seq(
-        field('expr', $._expression),
+        field('expr', choice($._expression, $.embedded_js_literal, $.embedded_css_literal)),
         repeat(seq('|>', field('stage', $._expression))),
         optional(seq(':', field('cond', $._expression))),
       ),
@@ -258,17 +258,26 @@ module.exports = grammar(goGrammar, {
     // Each case body runs to the next case/default/} (unbraced).
     class_switch_form: $ => seq(
       alias('switch', $.keyword),
-      optional(field('condition', $._expression)),
+      // condition: a plain expr, or a type-switch guard `x.(type)`.
+      optional(field('condition', choice($._expression, $._type_switch_guard))),
       '{', repeat($.class_switch_case), '}',
     ),
 
+    // `v.(type)` — a type-switch guard. Not a normal expression (`.(type)`
+    // uses the `type` keyword), so it needs its own shape.
+    _type_switch_guard: $ => seq($._expression, '.', '(', 'type', ')'),
+
     class_switch_case: $ => seq(
       choice(
+        // case values are Go expressions — a type name in a type-switch
+        // (`case string:`) parses fine as an identifier; the type-vs-value
+        // distinction is semantic, not syntactic.
         seq(alias('case', $.keyword), $._expression, repeat(seq(',', $._expression))),
         alias('default', $.keyword),
       ),
       ':',
-      optional($._class_body),
+      // case body: an unbraced class-part list, or a `{ … }`-braced value.
+      optional(choice($._class_body, seq('{', optional($._class_body), '}'))),
     ),
 
     // A plain comma-list of class parts (single bare expr allowed) — used
@@ -361,7 +370,12 @@ module.exports = grammar(goGrammar, {
     // { expr } or { expr |> stage |> stage } — a hole may carry a pipe chain
     // (same shape as at_hole). A pipe stage is syntactically a Go expression;
     // codegen does seed-first forward-application.
-    hole: $ => seq('{', $._expression, repeat(seq('|>', $._expression)), '}'),
+    // A hole value is a Go expression, or a js/css literal. js/css are
+    // attribute-context only (not in _expression) but ARE valid as an explicit
+    // braced value (`@click={js`…`}`). f-literal is already in _expression.
+    // Inlined (not a shared hidden rule) so the composable-vs-hole ambiguity
+    // resolves to `hole`, which `conflicts` can name.
+    hole: $ => seq('{', choice($._expression, $.embedded_js_literal, $.embedded_css_literal), repeat(seq('|>', $._expression)), '}'),
 
     // Prototype-only: condition reuses Go's own for_statement condition shape
     // (plain expr, or a real for_clause/range_clause for `for`) — no

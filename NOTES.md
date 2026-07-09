@@ -312,3 +312,43 @@ review surfaced. Key rules and findings:
   in markup control_flow (2a); the two embedded-literal escape-fidelity edges
   (2c backlog); `content_comment` in attribute position; `css_composed_value`
   as a distinct multi-segment style form.
+
+## All deferrals closed (supersedes the per-phase "deferred" notes above)
+
+Every item the earlier phase notes marked deferred is now implemented and
+covered by the authoritative parse gate (`npm run test:authoritative`,
+535/535). This section is the current source of truth; the per-phase
+"Deferred (…)" lines above are historical.
+
+Resolved since those notes:
+- **`\@{` escape** (was a silent misparse — the only non-safe deferral): the
+  embedded-text scanner now consumes `\X` as a pair, so `\@{` is literal text
+  (not a hole) and backslash-parity before a delimiter is correct
+  (`\\` + delimiter terminates). Matches gsx's `parser/attrs.go`.
+- **content_comment in attribute position** — `<div {/* c */} …>` (was
+  child-only).
+- **if/switch-with-initializer** in markup `control_flow` AND in class
+  value-forms — `{ if x := f(); x { … } }`, `class={ if x := f(); x { "a" } }`
+  (shared `_cf_condition`).
+- **css_composed_value / js-css-literal-in-a-brace** — `style={ …, css`…` }`
+  and `@click={js`…`}` (hole/class_part accept js/css literals).
+- **type-switch in a class value-form** — `class={ switch v.(type) { … } }`.
+- **braced switch case bodies** — `class={ switch v { case 1: { "x" } } }`.
+- **pipeline `|>` in plain `{ }` holes**, **generic tag type-args**
+  (`<Box[int]/>`), **ordered-attrs `{{ }}` literals** — see the auth-gate
+  commit.
+
+Intentionally NOT changed:
+- **Whitespace after `<`** (`< Icon/>` accepted as markup) — kept as
+  deliberate tolerance. gofmt never emits a space there; tightening it would
+  add strictness with no real benefit and some risk. Documented, not a defect.
+
+Remaining SKIP set (18 cases) is now exclusively gsx-parser-*rejected*,
+intentionally-invalid syntax (verified against each `diagnostics.golden`) —
+tree-sitter correctly ERRORs on them too, so they're excluded from the
+zero-ERROR gate, not grammar gaps. There are no known valid-gsx constructs
+the grammar fails to parse.
+
+`queries/injections.scm` injects javascript into `<script>`/`` js`…` `` and
+css into `<style>`/`` css`…` `` bodies (Go is native, so there's no Go
+injection).

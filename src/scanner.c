@@ -32,8 +32,14 @@ static bool scan_embedded_text(TSLexer *l) {
       continue;
     }
     if (l->lookahead == '\\') {
+      // A backslash escapes the next char as literal text: `\`` (escaped
+      // delimiter), `\@` (so `\@{` is literal `@{`, not a hole), `\\`
+      // (escaped backslash). Consuming `\X` as a PAIR also gives correct
+      // backslash-parity: `\\` + backtick leaves the backtick unescaped so
+      // it terminates. Matches the real gsx parser (parser/attrs.go
+      // embeddedDelimEscaped/embeddedAtBraceEscaped).
       advance(l);
-      if (!l->eof(l) && l->lookahead == '`') advance(l);
+      if (!l->eof(l)) advance(l);
       consumed = true;
       l->mark_end(l);
       continue;
@@ -61,8 +67,10 @@ static bool scan_embedded_text_dq(TSLexer *l) {
       continue;
     }
     if (l->lookahead == '\\') {
+      // `\X` consumed as a pair — see scan_embedded_text for the rationale
+      // (escaped delimiter/`@`, correct backslash-parity).
       advance(l);
-      if (!l->eof(l) && l->lookahead == '"') advance(l);
+      if (!l->eof(l)) advance(l);
       consumed = true;
       l->mark_end(l);
       continue;

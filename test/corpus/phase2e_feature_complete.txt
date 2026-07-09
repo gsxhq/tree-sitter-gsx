@@ -598,3 +598,30 @@ component C() { <Card toggle-attrs={{ "data-show": true, "data-hide": false }}/>
               key: (interpreted_string_literal
                 (interpreted_string_literal_content))
               value: (false))))))))
+
+==================
+embedded literal escapes: \@{ is literal (not a hole), real @{ } interpolates
+==================
+
+package v
+component C() { <p>{ f`a \@{lit} b @{real} c` }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (embedded_f_literal
+            (embedded_open)
+            (embedded_text)
+            (at_hole
+              (identifier))
+            (embedded_text)))
+        close_name: (tag_name)))))
