@@ -17,7 +17,9 @@ jobs:
           shopt -s nullglob
           examples=(test/examples/*.gsx)
           if [ ${#examples[@]} -eq 0 ]; then
-            echo "no test/examples/*.gsx yet (expected on unified-go-grammar Phase 1 — see docs/superpowers/specs/2026-07-08-unified-go-grammar-phase1-design.md)"
+            echo "no test/examples/*.gsx"
             exit 0
           fi
           for f in "${examples[@]}"; do npx tree-sitter parse -q "$f"; done
+      - name: Authoritative corpus parse gate (vendored from gsx repo)
+        run: npm run test:authoritative

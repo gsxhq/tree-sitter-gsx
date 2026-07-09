@@ -1,0 +1,17 @@
+package views
+
+type UsersPage struct {
+	Before string
+	Mid    int
+	After  bool
+}
+
+component (p UsersPage) Wrap() {
+	<div>{children}</div>
+}
+
+component (p UsersPage) Page() {
+	<span>{p.Before}</span>
+	<p.Wrap><em>{p.Mid}</em></p.Wrap>
+	<span>{p.After}</span>
+}

@@ -1,0 +1,11 @@
+package views
+
+import "github.com/gsxhq/gsx"
+
+component Panel(header gsx.Node, footer gsx.Node) {
+	<div><header>{header}</header><footer>{footer}</footer></div>
+}
+
+component Page() {
+	<Panel header={ <h1>H</h1> } footer={ <small>F</small> }/>
+}

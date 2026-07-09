@@ -7,5 +7,10 @@
     "tree-sitter-cli": "^0.26.0",
     "tree-sitter-go": "0.25.0"
   },
-  "scripts": { "generate": "tree-sitter generate", "test": "tree-sitter test" }
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter test",
+    "sync:authoritative": "node scripts/sync-authoritative-corpus.mjs",
+    "test:authoritative": "node scripts/test-authoritative.mjs"
+  }
 }

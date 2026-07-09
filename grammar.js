@@ -24,6 +24,10 @@ module.exports = grammar(goGrammar, {
     // (multi-part path) or composable_first_part (single-part path); the
     // next token (',' vs '}') resolves it.
     [$.class_part, $.composable_first_part],
+    // A `{ x |> f … }` value is a piped `hole` (expr_attribute) or the first
+    // `class_part` of a composable multi-list; the next token (',' vs '}')
+    // resolves it.
+    [$.class_part, $.hole],
   ],
 
   rules: {
@@ -133,9 +137,9 @@ module.exports = grammar(goGrammar, {
     )),
 
     element: $ => choice(
-      seq('<', field('name', $.tag_name), repeat($.attribute), '/>'),
+      seq('<', field('name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '/>'),
       seq(
-        '<', field('open_name', $.tag_name), repeat($.attribute), '>',
+        '<', field('open_name', $.tag_name), optional(field('type_arguments', $.type_arguments)), repeat($.attribute), '>',
         repeat($._child),
         '</', field('close_name', $.tag_name), '>',
       ),
@@ -153,15 +157,32 @@ module.exports = grammar(goGrammar, {
 
     attribute: $ => choice(
       $.embedded_attribute,
+      $.ordered_attrs_attribute,
       $.composable_attribute,
       $.static_attribute,
       $.expr_attribute,
       $.bool_attribute,
       $.spread_attribute,
       $.conditional_attribute,
+      $.content_comment,
     ),
 
     attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
+
+    // Ordered-attrs literal value: name={{ "k": v, "b", ... }} — a `{{ }}`
+    // comma-list of key(:value)? pairs (an ast.Attrs literal). `key` is a Go
+    // expression (usually a string), value a Go expression; a bare key is a
+    // boolean attr. Distinct from go_block `{{ }}` (statements) by position
+    // (attribute value) and content (pairs, not statements).
+    ordered_attrs_attribute: $ => seq(
+      field('name', $.attribute_name), '=',
+      '{{', optional($._attr_pair_list), '}}',
+    ),
+    _attr_pair_list: $ => seq($.attr_pair, repeat(seq(',', $.attr_pair)), optional(',')),
+    attr_pair: $ => seq(
+      field('key', $._expression),
+      optional(seq(':', field('value', $._expression))),
+    ),
 
     // A composable value (class/style in real gsx) — distinguished from a
     // single-expression expr_attribute by VALUE SHAPE, not by the attribute
@@ -196,17 +217,18 @@ module.exports = grammar(goGrammar, {
       ),
     ),
 
-    // A single part that can't be confused with a bare Go expression (so a
-    // one-part composable value is unambiguous vs expr_attribute's hole).
+    // A single part that can't be confused with a bare Go expression OR a
+    // single piped hole (so a one-part composable value is unambiguous vs
+    // expr_attribute's `hole`, which now also carries `|>` stages). Only a
+    // `: cond` guard or a value-form qualifies here; a single piped part
+    // (`{ x |> f }`) routes to the hole instead — semantically identical for a
+    // class value, and it removes the hole-vs-composable-single-pipe conflict.
     // Visible (no leading _) so it can appear in `conflicts`.
     composable_first_part: $ => choice(
       $.class_value_form,
       seq(
         field('expr', $._expression),
-        choice(
-          repeat1(seq('|>', field('stage', $._expression))),
-          seq(':', field('cond', $._expression)),
-        ),
+        seq(':', field('cond', $._expression)),
       ),
     ),
 
@@ -221,14 +243,14 @@ module.exports = grammar(goGrammar, {
 
     class_if_form: $ => seq(
       alias('if', $.keyword),
-      field('condition', $._expression),
+      field('condition', $._cf_condition),
       '{', optional($._class_body), '}',
       repeat($.class_else_clause),
     ),
 
     class_else_clause: $ => seq(
       alias('else', $.keyword),
-      optional(seq(alias('if', $.keyword), field('condition', $._expression))),
+      optional(seq(alias('if', $.keyword), field('condition', $._cf_condition))),
       '{', optional($._class_body), '}',
     ),
 
@@ -336,7 +358,10 @@ module.exports = grammar(goGrammar, {
     // Prototype-only: hole body is just a real Go expression (element/fragment
     // already included via _expression). Testing whether this is sufficient
     // vs. needing a separate markup-sequence alternative.
-    hole: $ => seq('{', $._expression, '}'),
+    // { expr } or { expr |> stage |> stage } — a hole may carry a pipe chain
+    // (same shape as at_hole). A pipe stage is syntactically a Go expression;
+    // codegen does seed-first forward-application.
+    hole: $ => seq('{', $._expression, repeat(seq('|>', $._expression)), '}'),
 
     // Prototype-only: condition reuses Go's own for_statement condition shape
     // (plain expr, or a real for_clause/range_clause for `for`) — no

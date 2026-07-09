@@ -1,0 +1,9 @@
+package views
+
+component Button(variant string) {
+	<button class={ "btn", variant } { attrs... }>{children}</button>
+}
+
+component Page() {
+	<Button variant="primary" class="w-full">Go</Button>
+}

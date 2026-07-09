@@ -1,0 +1,3 @@
+package views
+
+component C(on bool) { <div style={ "color: red": on }>y</div> }

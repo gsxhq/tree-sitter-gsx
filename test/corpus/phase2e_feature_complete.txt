@@ -56,11 +56,11 @@ component C() { <div class={ x |> upper }>y</div> }
       (element
         open_name: (tag_name)
         (attribute
-          (composable_attribute
+          (expr_attribute
             name: (attribute_name)
-            (composable_first_part
-              expr: (identifier)
-              stage: (identifier))))
+            value: (hole
+              (identifier)
+              (identifier))))
         (text)
         close_name: (tag_name)))))
 
@@ -515,3 +515,86 @@ component C() { <p>{ if msg := errs[name]; msg != "" { <span>{msg}</span> } }</p
               (identifier))
             close_name: (tag_name)))
         close_name: (tag_name)))))
+
+==================
+pipeline in a plain hole
+==================
+
+package v
+component C(name string) { <p>{ name |> upper }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (identifier)
+          (identifier))
+        close_name: (tag_name)))))
+
+==================
+generic component tag with type arguments
+==================
+
+package v
+component C() { <Box[int] value={7}/> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        name: (tag_name)
+        type_arguments: (type_arguments
+          (type_elem
+            (type_identifier)))
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (int_literal))))))))
+
+==================
+ordered-attrs literal value name={{ pair, pair }}
+==================
+
+package v
+component C() { <Card toggle-attrs={{ "data-show": true, "data-hide": false }}/> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        name: (tag_name)
+        (attribute
+          (ordered_attrs_attribute
+            name: (attribute_name)
+            (attr_pair
+              key: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              value: (true))
+            (attr_pair
+              key: (interpreted_string_literal
+                (interpreted_string_literal_content))
+              value: (false))))))))
