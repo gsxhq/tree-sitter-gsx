@@ -478,3 +478,40 @@ component (f *EditForm) M(name string) {
                 name: (attribute_name)
                 value: (interpreted_string_literal
                   (interpreted_string_literal_content))))))))))
+
+==================
+control_flow if with an initializer (if x := f(); cond)
+==================
+
+package v
+component C() { <p>{ if msg := errs[name]; msg != "" { <span>{msg}</span> } }</p> }
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (control_flow
+          (keyword)
+          initializer: (short_var_declaration
+            left: (expression_list
+              (identifier))
+            right: (expression_list
+              (index_expression
+                operand: (identifier)
+                index: (identifier))))
+          condition: (binary_expression
+            left: (identifier)
+            right: (interpreted_string_literal))
+          (element
+            open_name: (tag_name)
+            (hole
+              (identifier))
+            close_name: (tag_name)))
+        close_name: (tag_name)))))

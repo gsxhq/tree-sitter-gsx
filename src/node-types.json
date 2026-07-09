@@ -1279,11 +1279,19 @@
     "named": true,
     "fields": {
       "condition": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
           {
+            "type": ";",
+            "named": false
+          },
+          {
             "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "_simple_statement",
             "named": true
           },
           {
@@ -1292,6 +1300,16 @@
           },
           {
             "type": "range_clause",
+            "named": true
+          }
+        ]
+      },
+      "initializer": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "_simple_statement",
             "named": true
           }
         ]
@@ -1498,11 +1516,37 @@
     "named": true,
     "fields": {
       "condition": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": ";",
+            "named": false
+          },
+          {
+            "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "_simple_statement",
+            "named": true
+          },
+          {
+            "type": "for_clause",
+            "named": true
+          },
+          {
+            "type": "range_clause",
+            "named": true
+          }
+        ]
+      },
+      "initializer": {
         "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "_expression",
+            "type": "_simple_statement",
             "named": true
           }
         ]

@@ -346,15 +346,24 @@ module.exports = grammar(goGrammar, {
     control_flow: $ => seq(
       '{',
       alias(choice('if', 'for', 'switch'), $.keyword),
-      field('condition', choice($._expression, $.for_clause, $.range_clause)),
+      field('condition', $._cf_condition),
       '{', repeat($._child), '}',
       repeat($.else_clause),
       '}',
     ),
 
+    // if/switch condition may carry an initializer (`if x := f(); x != ""`);
+    // for uses a for_clause/range_clause. Mirrors Go's own
+    // if_statement/expression_switch_statement initializer shape.
+    _cf_condition: $ => choice(
+      seq(optional(seq(field('initializer', $._simple_statement), ';')), $._expression),
+      $.for_clause,
+      $.range_clause,
+    ),
+
     else_clause: $ => seq(
       alias('else', $.keyword),
-      optional(seq(alias('if', $.keyword), field('condition', $._expression))),
+      optional(seq(alias('if', $.keyword), field('condition', $._cf_condition))),
       '{', repeat($._child), '}',
     ),
 
