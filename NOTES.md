@@ -217,3 +217,38 @@ escape case (`` f`a \`esc\` b` ``, verified working but not yet pinned in
   `raw_element` (`<script>`/`<style>` raw-text — needs its own scanner),
   `content_comment` — all independent child-content types, to be scoped
   by 2e (full corpus port) or a dedicated follow-up.
+- A consumer **cannot rely on the grammar to reject a nested `component`**
+  (a `component` declared inside another component's markup body): it's
+  silently absorbed as `_child` `(text)`, no ERROR — inherent to `_child`
+  including `text` (reviewed in 2a). Benign (gsx's compiler rejects
+  nested components semantically; nobody writes them), noted so a
+  consumer knows the grammar layer doesn't enforce top-level-only.
+
+## Phase 2d final-review finding: 2e-scoping inputs (real-.gsx-file probe)
+
+The Phase 2d final adversarial review parsed all 13 real
+`test/examples-legacy-blob-model/*.gsx` files as the readiness signal for
+2e's corpus port. Result: 1 clean, 12 ERROR — but **every failure roots
+at a not-yet-ported gsx construct, never at anything Phases 1–2d claim to
+support, and every failure is a visible ERROR/MISSING marker (no silent
+misparse of a valid construct)**. The Go embedded in cascaded files
+(multi-name struct fields, `iota`, `qualified_type`, pointer receivers)
+parses correctly inside the outer ERROR. Blockers, by frequency:
+
+- **Composable class/style list value** (`class={ "a", "b": cond, expr }`)
+  — the #1 real-file blocker (5 of 13 files), and **not** covered by the
+  existing deferral labels. It is neither `value_control_flow`
+  (`class={ if … }`) nor `css_composed_value` (composing css segments):
+  it's a comma-separated list whose entries may be `"str"`, `"str":
+  cond`, or a bare expr. The old blob grammar absorbed it into the opaque
+  `_attr_hole_body`/`go_text` blob; the unified `expr_attribute`
+  (`{ $._expression }`, 2b) correctly requires a single real Go
+  expression and visibly rejects the list. **2e must scope this as its
+  own structured rule** — it's a flagship gsx feature, tracked here by
+  name so it isn't rediscovered mid-port. (Predates 2d — a 2b-surface
+  gap, not a 2d regression.)
+- `{{ … }}` explicit Go statement block (1 file) — not yet ported.
+- Dotted tag names `<ui.AppShell>`/`<p.Content/>` (1 file) — already
+  tracked (see "Capability regressions" at the top of this file).
+- `doctype` / `raw_element` / `content_comment` (several files) — the
+  already-listed 2d deferrals above.
