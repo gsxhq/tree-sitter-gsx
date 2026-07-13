@@ -24,10 +24,13 @@ module.exports = grammar(goGrammar, {
     // (multi-part path) or composable_first_part (single-part path); the
     // next token (',' vs '}') resolves it.
     [$.class_part, $.composable_first_part],
-    // A `{ x |> f … }` value is a piped `hole` (expr_attribute) or the first
-    // `class_part` of a composable multi-list; the next token (',' vs '}')
-    // resolves it.
-    [$.class_part, $.hole],
+    // A `{ x |> f … }` value is a piped `hole` (expr_attribute), the first
+    // `class_part` of a composable multi-list, or a single
+    // `composable_first_part` (when a `: cond` guard follows the stages); the
+    // stages are a shared `|>`-repeat, so the disambiguating token after them
+    // (',' → class_part list, ':' → composable_first_part, '}' → hole)
+    // resolves it via GLR lookahead.
+    [$.class_part, $.composable_first_part, $.hole],
   ],
 
   rules: {
@@ -127,7 +130,40 @@ module.exports = grammar(goGrammar, {
     // text. A pipe stage is syntactically just a real Go expression
     // (typically identifier or call_expression) — codegen handles seed-first
     // forward-application, the grammar only needs the shape.
-    at_hole: $ => seq('@{', $._expression, repeat(seq('|>', $._expression)), '}'),
+    at_hole: $ => seq('@{', $._expression, repeat(seq('|>', $._pipe_stage)), '}'),
+
+    // A single pipeline stage: `name` or `name(args)`. gsx validates a stage's
+    // NAME with isStageName (parser/pipe.go) — an (optionally dotted)
+    // identifier — NOT as a Go expression, so Go keywords are legal filter
+    // names (e.g. std's `default`, from std.Default lowerFirst'd). Ordinary
+    // Go-named stages (`upper`, `truncate(10)`, `strings.ToUpper`) still parse
+    // via $._expression, keeping their identifier/call_expression/
+    // selector_expression node shapes; only keyword-named filters need the
+    // extra pipe_keyword_stage arm.
+    _pipe_stage: $ => choice(
+      $._expression,
+      $.pipe_keyword_stage,
+    ),
+    // A keyword-named filter: bare `default` or `default(args)`. Its own node
+    // (not aliased to identifier/call_expression) because tree-sitter cannot
+    // faithfully re-alias an inline call shape onto Go's call_expression here;
+    // a dedicated node keeps the name highlightable and the args a real
+    // argument_list. `function` is the keyword-as-filter name.
+    pipe_keyword_stage: $ => seq(
+      field('function', alias($._pipe_filter_keyword, $.identifier)),
+      optional(field('arguments', $.argument_list)),
+    ),
+    // Go keywords that pass isStageName yet never begin a Go expression or
+    // type, so they can head a filter without ambiguity. The expression/type
+    // starters (`func`, `map`, `chan`, `struct`, `interface`) are deliberately
+    // excluded: they are irreducibly ambiguous with a func literal / composite
+    // type in the $._expression arm and are never real filter names (std's only
+    // keyword-named filter is `default`).
+    _pipe_filter_keyword: $ => choice(
+      'break', 'case', 'const', 'continue', 'default', 'defer', 'else',
+      'fallthrough', 'for', 'go', 'goto', 'if', 'import', 'package', 'range',
+      'return', 'select', 'switch', 'type', 'var',
+    ),
 
     embedded_attribute: $ => prec(1, seq(
       field('name', $.attribute_name),
@@ -215,7 +251,7 @@ module.exports = grammar(goGrammar, {
       $.class_value_form,
       seq(
         field('expr', $._expression),
-        repeat(seq('|>', field('stage', $._expression))),
+        repeat(seq('|>', field('stage', $._pipe_stage))),
         optional(seq(':', field('cond', $._expression))),
       ),
     ),
@@ -231,6 +267,7 @@ module.exports = grammar(goGrammar, {
       $.class_value_form,
       seq(
         field('expr', $._expression),
+        repeat(seq('|>', field('stage', $._pipe_stage))),
         seq(':', field('cond', $._expression)),
       ),
     ),
@@ -298,7 +335,17 @@ module.exports = grammar(goGrammar, {
 
     bool_attribute: $ => prec(-1, field('name', $.attribute_name)),
 
-    spread_attribute: $ => seq('{', field('value', $._expression), '...', '}'),
+    // Spread: `{ expr... }` or a pipelined spread `{ expr |> f(args)... }`
+    // whose final stage yields the attrs slice. gsx also accepts the canonical
+    // parenthesized form `{ (seed |> f)... }`, which parses via the
+    // parenthesized_expression $._expression arm without extra rules here.
+    spread_attribute: $ => seq(
+      '{',
+      field('value', $._expression),
+      repeat(seq('|>', field('stage', $._pipe_stage))),
+      '...',
+      '}',
+    ),
 
     conditional_attribute: $ => seq(
       '{',
@@ -377,7 +424,7 @@ module.exports = grammar(goGrammar, {
     // bare _expression alternatives, so no separate listing is needed here.
     // Inlined (not a shared hidden rule) so the composable-vs-hole ambiguity
     // resolves to `hole`, which `conflicts` can name.
-    hole: $ => seq('{', $._expression, repeat(seq('|>', $._expression)), '}'),
+    hole: $ => seq('{', $._expression, repeat(seq('|>', $._pipe_stage)), '}'),
 
     // Prototype-only: condition reuses Go's own for_statement condition shape
     // (plain expr, or a real for_clause/range_clause for `for`) — no
