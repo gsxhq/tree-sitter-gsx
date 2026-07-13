@@ -5,7 +5,7 @@ component Marker[T any]() {
 }
 
 component Holder[T any](value any) {
-	<p>{ value |> format("%v") }</p>
+	<p>{ value |> printf("%v") }</p>
 }
 
 component Pair[K any, V any]() {
