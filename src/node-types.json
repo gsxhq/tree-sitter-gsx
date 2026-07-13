@@ -20,7 +20,15 @@
         "named": true
       },
       {
+        "type": "embedded_css_literal",
+        "named": true
+      },
+      {
         "type": "embedded_f_literal",
+        "named": true
+      },
+      {
+        "type": "embedded_js_literal",
         "named": true
       },
       {
@@ -878,14 +886,6 @@
         "types": [
           {
             "type": "_expression",
-            "named": true
-          },
-          {
-            "type": "embedded_css_literal",
-            "named": true
-          },
-          {
-            "type": "embedded_js_literal",
             "named": true
           }
         ]
@@ -2367,14 +2367,6 @@
       "types": [
         {
           "type": "_expression",
-          "named": true
-        },
-        {
-          "type": "embedded_css_literal",
-          "named": true
-        },
-        {
-          "type": "embedded_js_literal",
           "named": true
         }
       ]

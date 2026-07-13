@@ -2,7 +2,7 @@ package views
 
 component Greeting[V ~string, W any](v V, w W) {
 	<p>{ v }</p>
-	<p>{ w |> format("%v") }</p>
+	<p>{ w |> printf("%v") }</p>
 }
 
 type MyByte byte
