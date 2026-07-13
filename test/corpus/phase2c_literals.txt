@@ -355,3 +355,121 @@ func cmp(a int, b int) bool {
             (binary_expression
               left: (identifier)
               right: (identifier))))))))
+
+==================
+bare js-literal as a Go value with a hole
+==================
+
+package main
+func f() {
+	var x = js`hi @{name}`
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_js_literal
+                (embedded_open)
+                (embedded_text)
+                (at_hole
+                  (identifier))))))))))
+
+==================
+bare css-literal as a Go value with a hole
+==================
+
+package main
+func f() {
+	var x = css`hi @{name}`
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (embedded_css_literal
+                (embedded_open)
+                (embedded_text)
+                (at_hole
+                  (identifier))))))))))
+
+==================
+css-literal as a call argument
+==================
+
+package main
+func f() {
+	report(css`color:@{color}`)
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (expression_statement
+          (call_expression
+            function: (identifier)
+            arguments: (argument_list
+              (embedded_css_literal
+                (embedded_open)
+                (embedded_text)
+                (at_hole
+                  (identifier))))))))))
+
+==================
+js-literal inside a go_block statement escape hatch
+==================
+
+package v
+component C() {
+	{{ x := js`emit(@{id})` }}
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (go_block
+        (statement_list
+          (short_var_declaration
+            left: (expression_list
+              (identifier))
+            right: (expression_list
+              (embedded_js_literal
+                (embedded_open)
+                (embedded_text)
+                (at_hole
+                  (identifier))
+                (embedded_text)))))))))

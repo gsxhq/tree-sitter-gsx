@@ -82,10 +82,13 @@ module.exports = grammar(goGrammar, {
       $.parenthesized_expression,
       $.element,
       $.fragment,
-      // js/css literals are attribute-context only, never standalone Go
-      // values (matches the original f-literal design) — only f qualifies
-      // as a bare _expression.
+      // f/js/css literals are all valid as bare Go values (var initializers,
+      // call arguments, go_block statements, …), not just attribute values —
+      // the sublanguage tag only changes how the literal's text is escaped
+      // at codegen time, not where it's syntactically permitted.
       $.embedded_f_literal,
+      $.embedded_js_literal,
+      $.embedded_css_literal,
     ),
 
     // f`…`/f"…": generic interpolating literal. js/css embed their
@@ -211,7 +214,7 @@ module.exports = grammar(goGrammar, {
     class_part: $ => choice(
       $.class_value_form,
       seq(
-        field('expr', choice($._expression, $.embedded_js_literal, $.embedded_css_literal)),
+        field('expr', $._expression),
         repeat(seq('|>', field('stage', $._expression))),
         optional(seq(':', field('cond', $._expression))),
       ),
@@ -370,12 +373,11 @@ module.exports = grammar(goGrammar, {
     // { expr } or { expr |> stage |> stage } — a hole may carry a pipe chain
     // (same shape as at_hole). A pipe stage is syntactically a Go expression;
     // codegen does seed-first forward-application.
-    // A hole value is a Go expression, or a js/css literal. js/css are
-    // attribute-context only (not in _expression) but ARE valid as an explicit
-    // braced value (`@click={js`…`}`). f-literal is already in _expression.
+    // A hole value is any Go expression — f/js/css literals are all valid
+    // bare _expression alternatives, so no separate listing is needed here.
     // Inlined (not a shared hidden rule) so the composable-vs-hole ambiguity
     // resolves to `hole`, which `conflicts` can name.
-    hole: $ => seq('{', choice($._expression, $.embedded_js_literal, $.embedded_css_literal), repeat(seq('|>', $._expression)), '}'),
+    hole: $ => seq('{', $._expression, repeat(seq('|>', $._expression)), '}'),
 
     // Prototype-only: condition reuses Go's own for_statement condition shape
     // (plain expr, or a real for_clause/range_clause for `for`) — no
