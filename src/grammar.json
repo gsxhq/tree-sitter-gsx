@@ -7470,7 +7470,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "_expression"
+                "name": "_pipe_stage"
               }
             ]
           }
@@ -7478,6 +7478,138 @@
         {
           "type": "STRING",
           "value": "}"
+        }
+      ]
+    },
+    "_pipe_stage": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "pipe_keyword_stage"
+        }
+      ]
+    },
+    "pipe_keyword_stage": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "function",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_pipe_filter_keyword"
+            },
+            "named": true,
+            "value": "identifier"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "arguments",
+              "content": {
+                "type": "SYMBOL",
+                "name": "argument_list"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "_pipe_filter_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "break"
+        },
+        {
+          "type": "STRING",
+          "value": "case"
+        },
+        {
+          "type": "STRING",
+          "value": "const"
+        },
+        {
+          "type": "STRING",
+          "value": "continue"
+        },
+        {
+          "type": "STRING",
+          "value": "default"
+        },
+        {
+          "type": "STRING",
+          "value": "defer"
+        },
+        {
+          "type": "STRING",
+          "value": "else"
+        },
+        {
+          "type": "STRING",
+          "value": "fallthrough"
+        },
+        {
+          "type": "STRING",
+          "value": "for"
+        },
+        {
+          "type": "STRING",
+          "value": "go"
+        },
+        {
+          "type": "STRING",
+          "value": "goto"
+        },
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "STRING",
+          "value": "import"
+        },
+        {
+          "type": "STRING",
+          "value": "package"
+        },
+        {
+          "type": "STRING",
+          "value": "range"
+        },
+        {
+          "type": "STRING",
+          "value": "return"
+        },
+        {
+          "type": "STRING",
+          "value": "select"
+        },
+        {
+          "type": "STRING",
+          "value": "switch"
+        },
+        {
+          "type": "STRING",
+          "value": "type"
+        },
+        {
+          "type": "STRING",
+          "value": "var"
         }
       ]
     },
@@ -7935,7 +8067,7 @@
                     "name": "stage",
                     "content": {
                       "type": "SYMBOL",
-                      "name": "_expression"
+                      "name": "_pipe_stage"
                     }
                   }
                 ]
@@ -7986,6 +8118,26 @@
               "content": {
                 "type": "SYMBOL",
                 "name": "_expression"
+              }
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "|>"
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "stage",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_pipe_stage"
+                    }
+                  }
+                ]
               }
             },
             {
@@ -8429,6 +8581,26 @@
           "content": {
             "type": "SYMBOL",
             "name": "_expression"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "|>"
+              },
+              {
+                "type": "FIELD",
+                "name": "stage",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_pipe_stage"
+                }
+              }
+            ]
           }
         },
         {
@@ -8880,7 +9052,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "_expression"
+                "name": "_pipe_stage"
               }
             ]
           }
@@ -9127,6 +9299,7 @@
     ],
     [
       "class_part",
+      "composable_first_part",
       "hole"
     ]
   ],

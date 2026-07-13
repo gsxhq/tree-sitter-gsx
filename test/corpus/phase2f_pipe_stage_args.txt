@@ -1,0 +1,146 @@
+==================
+spread attribute carrying a pipeline (filter with args)
+==================
+
+package v
+func f(attrs ...gsx.Attr) gsx.Node {
+	return <div { attrs |> withoutKey("id")... }>x</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (variadic_parameter_declaration
+        name: (identifier)
+        type: (qualified_type
+          package: (package_identifier)
+          name: (type_identifier))))
+    result: (qualified_type
+      package: (package_identifier)
+      name: (type_identifier))
+    body: (block
+      (statement_list
+        (return_statement
+          (expression_list
+            (element
+              open_name: (tag_name)
+              (attribute
+                (spread_attribute
+                  value: (identifier)
+                  stage: (call_expression
+                    function: (identifier)
+                    arguments: (argument_list
+                      (interpreted_string_literal
+                        (interpreted_string_literal_content))))))
+              (text)
+              close_name: (tag_name))))))))
+
+==================
+hole stage: keyword-named filter with args (default)
+==================
+
+package v
+component W(base string) {
+	<Icon name={ base |> default(x) }/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        name: (tag_name)
+        (attribute
+          (expr_attribute
+            name: (attribute_name)
+            value: (hole
+              (identifier)
+              (pipe_keyword_stage
+                function: (identifier)
+                arguments: (argument_list
+                  (identifier))))))))))
+
+==================
+composable single part: pipeline stage plus : cond guard
+==================
+
+package v
+component T(v string, on bool) {
+	<div class={ v |> upper: on }>x</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier))
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (composable_first_part
+              expr: (identifier)
+              stage: (identifier)
+              cond: (identifier))))
+        (text)
+        close_name: (tag_name)))))
+
+==================
+class part stage: keyword-named filter in a multi-part list
+==================
+
+package v
+component C(v string) {
+	<div class={ v |> default, "x" }>y</div>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (attribute
+          (composable_attribute
+            name: (attribute_name)
+            (class_part
+              expr: (identifier)
+              stage: (pipe_keyword_stage
+                function: (identifier)))
+            (class_part
+              expr: (interpreted_string_literal
+                (interpreted_string_literal_content)))))
+        (text)
+        close_name: (tag_name)))))

@@ -437,6 +437,10 @@
         {
           "type": "_expression",
           "named": true
+        },
+        {
+          "type": "pipe_keyword_stage",
+          "named": true
         }
       ]
     }
@@ -897,6 +901,10 @@
           {
             "type": "_expression",
             "named": true
+          },
+          {
+            "type": "pipe_keyword_stage",
+            "named": true
           }
         ]
       }
@@ -1187,6 +1195,20 @@
         "types": [
           {
             "type": "_expression",
+            "named": true
+          }
+        ]
+      },
+      "stage": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "pipe_keyword_stage",
             "named": true
           }
         ]
@@ -2368,12 +2390,21 @@
         {
           "type": "_expression",
           "named": true
+        },
+        {
+          "type": "pipe_keyword_stage",
+          "named": true
         }
       ]
     }
   },
   {
     "type": "html_comment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "identifier",
     "named": true,
     "fields": {}
   },
@@ -2942,6 +2973,32 @@
     }
   },
   {
+    "type": "pipe_keyword_stage",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument_list",
+            "named": true
+          }
+        ]
+      },
+      "function": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "pointer_type",
     "named": true,
     "fields": {},
@@ -3307,6 +3364,20 @@
     "type": "spread_attribute",
     "named": true,
     "fields": {
+      "stage": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "pipe_keyword_stage",
+            "named": true
+          }
+        ]
+      },
       "value": {
         "multiple": false,
         "required": true,
@@ -4179,10 +4250,6 @@
   {
     "type": "goto",
     "named": false
-  },
-  {
-    "type": "identifier",
-    "named": true
   },
   {
     "type": "if",
