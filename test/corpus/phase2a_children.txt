@@ -367,6 +367,41 @@ func f() {
                 close_name: (tag_name)))))))))
 
 ==================
+expressionless switch control-flow
+==================
+
+package main
+component Icon(label string) {
+	{ switch {
+	case label == "home":
+		<Home/>
+	default:
+		<Unknown/>
+	} }
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (control_flow
+        (keyword)
+        (text)
+        (element
+          name: (tag_name))
+        (text)
+        (element
+          name: (tag_name))))))
+
+==================
 if-else control-flow with plain-text bodies (no trailing element/hole)
 ==================
 
