@@ -241,8 +241,7 @@ component C() { <ui.Button variant="primary">Go</ui.Button> }
         (attribute
           (static_attribute
             name: (attribute_name)
-            value: (interpreted_string_literal
-              (interpreted_string_literal_content))))
+            value: (attribute_value_string)))
         (text)
         close_name: (tag_name)))))
 
@@ -272,8 +271,7 @@ component C() { <el-dialog open><turbo-frame id="m"></turbo-frame></el-dialog> }
           (attribute
             (static_attribute
               name: (attribute_name)
-              value: (interpreted_string_literal
-                (interpreted_string_literal_content))))
+              value: (attribute_value_string)))
           close_name: (tag_name))
         close_name: (tag_name)))))
 
@@ -476,8 +474,7 @@ component (f *EditForm) M(name string) {
             (attribute
               (static_attribute
                 name: (attribute_name)
-                value: (interpreted_string_literal
-                  (interpreted_string_literal_content))))))))))
+                value: (attribute_value_string)))))))))
 
 ==================
 control_flow if with an initializer (if x := f(); cond)

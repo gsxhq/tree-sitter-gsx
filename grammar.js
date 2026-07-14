@@ -328,7 +328,23 @@ module.exports = grammar(goGrammar, {
       optional(','),
     ),
 
-    static_attribute: $ => seq(field('name', $.attribute_name), '=', field('value', $._string_literal)),
+    static_attribute: $ => seq(
+      field('name', $.attribute_name),
+      '=',
+      field('value', choice($.attribute_value_string, $.raw_string_literal)),
+    ),
+
+    // A plain double-quoted attribute value (`class="…"`, `x-data="{ … }"`).
+    // Deliberately NOT Go's interpreted_string_literal: that rule's content
+    // token is `/[^"\n\\]+/`, which forbids newlines (faithful Go semantics —
+    // Go strings can't span lines). But a gsx static attribute value is opaque
+    // HTML-ish text: the real parser (parser/attrs.go) scans from the opening
+    // `"` to the next `"` with no newline and no escape handling, so a value may
+    // freely span multiple lines (e.g. an inline Alpine `x-data="{ … }"` blob).
+    // A single token keeps it robust — the whole value is one @string and a
+    // multi-line value no longer collapses the enclosing element into ERROR.
+    // Bare-backtick values (`name=`foo``) stay a Go raw_string_literal.
+    attribute_value_string: $ => token(seq('"', /[^"]*/, '"')),
 
     // Reuses 2a's `hole` rule directly for the value — name={ expr }.
     expr_attribute: $ => prec(-1, seq(field('name', $.attribute_name), '=', field('value', $.hole))),

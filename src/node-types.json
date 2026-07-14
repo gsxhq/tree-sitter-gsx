@@ -3424,7 +3424,7 @@
         "required": true,
         "types": [
           {
-            "type": "interpreted_string_literal",
+            "type": "attribute_value_string",
             "named": true
           },
           {
@@ -4156,6 +4156,10 @@
   },
   {
     "type": "attribute_name",
+    "named": true
+  },
+  {
+    "type": "attribute_value_string",
     "named": true
   },
   {
