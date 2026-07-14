@@ -52,8 +52,7 @@ component Card(title string, count int) {
         (attribute
           (static_attribute
             name: (attribute_name)
-            value: (interpreted_string_literal
-              (interpreted_string_literal_content))))
+            value: (attribute_value_string)))
         (hole
           (identifier))
         close_name: (tag_name)))))

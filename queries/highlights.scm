@@ -99,6 +99,9 @@
 (attribute_name) @attribute
 (bool_attribute (attribute_name) @attribute)
 
+; Plain double-quoted attribute value (may span multiple lines).
+(attribute_value_string) @string
+
 ; `{ … }` hole / control-flow / composable braces read as special punctuation.
 [
   "{"

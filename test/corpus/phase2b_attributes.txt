@@ -26,8 +26,7 @@ func f() {
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (attribute
                   (bool_attribute
                     name: (attribute_name)))
@@ -68,8 +67,7 @@ func f() {
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (text)
                 close_name: (tag_name)))))))))
 
@@ -105,15 +103,13 @@ func f() {
                     (attribute
                       (static_attribute
                         name: (attribute_name)
-                        value: (interpreted_string_literal
-                          (interpreted_string_literal_content))))
+                        value: (attribute_value_string)))
                     (attribute_else_clause
                       (keyword)
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))))
+                          value: (attribute_value_string))))))
                 (text)
                 close_name: (tag_name)))))))))
 
@@ -176,13 +172,11 @@ func f() {
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (attribute
                   (expr_attribute
                     name: (attribute_name)
@@ -217,8 +211,7 @@ func f() {
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (attribute
                   (conditional_attribute
                     (keyword)
@@ -226,8 +219,7 @@ func f() {
                     (attribute
                       (static_attribute
                         name: (attribute_name)
-                        value: (interpreted_string_literal
-                          (interpreted_string_literal_content))))))
+                        value: (attribute_value_string)))))
                 (attribute
                   (bool_attribute
                     name: (attribute_name)))))))))))
@@ -333,8 +325,7 @@ func f() {
                 (attribute
                   (static_attribute
                     name: (attribute_name)
-                    value: (interpreted_string_literal
-                      (interpreted_string_literal_content))))
+                    value: (attribute_value_string)))
                 (attribute
                   (conditional_attribute
                     (keyword)
@@ -377,8 +368,7 @@ func f() {
                     (attribute
                       (static_attribute
                         name: (attribute_name)
-                        value: (interpreted_string_literal
-                          (interpreted_string_literal_content))))
+                        value: (attribute_value_string)))
                     (attribute_else_clause
                       (keyword)
                       (keyword)
@@ -388,15 +378,13 @@ func f() {
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))
+                          value: (attribute_value_string))))
                     (attribute_else_clause
                       (keyword)
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))))
+                          value: (attribute_value_string))))))
                 (text)
                 close_name: (tag_name)))))))))
 
@@ -434,8 +422,7 @@ func f() {
                     (attribute
                       (static_attribute
                         name: (attribute_name)
-                        value: (interpreted_string_literal
-                          (interpreted_string_literal_content))))
+                        value: (attribute_value_string)))
                     (attribute_else_clause
                       (keyword)
                       (keyword)
@@ -445,8 +432,7 @@ func f() {
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))
+                          value: (attribute_value_string))))
                     (attribute_else_clause
                       (keyword)
                       (keyword)
@@ -456,12 +442,47 @@ func f() {
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))
+                          value: (attribute_value_string))))
                     (attribute_else_clause
                       (keyword)
                       (attribute
                         (static_attribute
                           name: (attribute_name)
-                          value: (interpreted_string_literal
-                            (interpreted_string_literal_content)))))))))))))))
+                          value: (attribute_value_string))))))))))))))
+
+==================
+multi-line double-quoted attribute value (inline Alpine x-data blob)
+==================
+
+package main
+func f() {
+	var x = <form x-data="{
+		open: false,
+		items() { return q('a:not([x])'); },
+	}" class="c"/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (statement_list
+        (var_declaration
+          (var_spec
+            name: (identifier)
+            value: (expression_list
+              (element
+                name: (tag_name)
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (attribute_value_string)))
+                (attribute
+                  (static_attribute
+                    name: (attribute_name)
+                    value: (attribute_value_string)))))))))))
