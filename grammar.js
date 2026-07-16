@@ -449,8 +449,11 @@ module.exports = grammar(goGrammar, {
     // _statement).
     control_flow: $ => seq(
       '{',
-      alias(choice('if', 'for', 'switch'), $.keyword),
-      field('condition', $._cf_condition),
+      choice(
+        seq(alias('if', $.keyword), field('condition', $._cf_condition)),
+        seq(alias('for', $.keyword), field('condition', $._cf_condition)),
+        seq(alias('switch', $.keyword), optional(field('condition', $._cf_condition))),
+      ),
       '{', repeat($._child), '}',
       repeat($.else_clause),
       '}',
