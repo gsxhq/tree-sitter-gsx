@@ -11,5 +11,5 @@ component Widget(p widgetProps) {
 }
 
 component Page() {
-	<Widget data-href={"javascript:alert(1)"}/>
+	<Widget p={widgetProps{Attrs: gsx.Attrs{{Key: "data-href", Value: "javascript:alert(1)"}}}}/>
 }

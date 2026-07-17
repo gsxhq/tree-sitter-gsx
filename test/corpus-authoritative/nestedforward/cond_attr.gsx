@@ -1,10 +1,12 @@
 package views
 
-component Icon(name string) {
+
+import "github.com/gsxhq/gsx"
+component Icon(name string, attrs gsx.Attrs) {
 	<span data-name={name} { attrs... }>i</span>
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Icon name="x" { if attrs.Has("hot") { data-hot="1" } }/>
 }
 

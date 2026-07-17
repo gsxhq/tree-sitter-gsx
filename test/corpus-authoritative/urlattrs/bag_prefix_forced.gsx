@@ -11,5 +11,5 @@ component Nav(p navProps) {
 }
 
 component Page() {
-	<Nav data-url-go={"javascript:alert(1)"} data-url-keep={"/safe"}/>
+	<Nav p={navProps{Attrs: gsx.Attrs{{Key: "data-url-go", Value: "javascript:alert(1)"}, {Key: "data-url-keep", Value: "/safe"}}}}/>
 }

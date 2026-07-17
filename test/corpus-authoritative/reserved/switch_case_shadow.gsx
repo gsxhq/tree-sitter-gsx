@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component C(mode string) {
+component C(mode string, attrs gsx.Attrs) {
 	{ switch mode {
 	case "a":
 		{{ attrs := gsx.Attrs{{Key: "data-local", Value: "1"}} }}

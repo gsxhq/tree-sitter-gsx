@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Wrap() {
+component Wrap(children gsx.Node) {
 	<section>{children}</section>
 }
 

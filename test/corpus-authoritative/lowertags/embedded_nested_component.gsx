@@ -12,7 +12,7 @@ component card() {
 	<em>c</em>
 }
 
-component Outer() {
+component Outer(children gsx.Node) {
 	<b>{children}</b>
 }
 

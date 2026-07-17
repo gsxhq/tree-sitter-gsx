@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Field(label string, containerAttrs gsx.Attrs) {
+component Field(label string, containerAttrs gsx.Attrs, attrs gsx.Attrs) {
 	<div class="field" { containerAttrs... }>
 		<label>{label}</label>
 		<input class="field-input" { attrs... }/>
@@ -12,7 +12,7 @@ component Field(label string, containerAttrs gsx.Attrs) {
 component Page() {
 	<Field
 		label="Email"
-		container-attrs={gsx.Attrs{{Key: "data-testid", Value: "email-field"}}}
+		containerAttrs={gsx.Attrs{{Key: "data-testid", Value: "email-field"}}}
 		type="email"
 		placeholder="you@co"
 		required

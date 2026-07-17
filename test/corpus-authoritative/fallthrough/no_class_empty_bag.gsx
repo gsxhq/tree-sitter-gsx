@@ -1,5 +1,7 @@
 package views
 
-component P() {
+
+import "github.com/gsxhq/gsx"
+component P(children gsx.Node) {
 	<p>{children}</p>
 }

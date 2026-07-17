@@ -7,5 +7,5 @@ component Card(link string, cardAttrs gsx.Attrs) {
 }
 
 component Page() {
-	<Card link="/safe" card-attrs={{ "HREF": "javascript:alert(1)" }}/>
+	<Card link="/safe" cardAttrs={{ "HREF": "javascript:alert(1)" }}/>
 }

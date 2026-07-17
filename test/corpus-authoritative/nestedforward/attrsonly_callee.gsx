@@ -14,7 +14,7 @@ var Dot = func(attrs gsx.Attrs) gsx.Node {
 	return renderDot(dotProps{Attrs: attrs})
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Dot class="w-5" { attrs... }/>
 }
 

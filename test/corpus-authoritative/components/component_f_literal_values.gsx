@@ -6,7 +6,7 @@ component PageHeader(title string, subtitle string) {
 	<header><h1>{title}</h1><p>{subtitle}</p></header>
 }
 
-component Field(label string) {
+component Field(label string, attrs gsx.Attrs) {
 	<label>{label}<input { attrs... }/></label>
 }
 

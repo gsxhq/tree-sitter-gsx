@@ -1,10 +1,12 @@
 package views
 
-component Panel() {
+
+import "github.com/gsxhq/gsx"
+component Panel(attrs gsx.Attrs) {
 	<div { attrs... }>p</div>
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Panel { attrs.Without("id")... }/>
 }
 

@@ -1,10 +1,11 @@
 package p
 
-component Panel() {
-	<section { attrs... }>{children}</section>
+import "github.com/gsxhq/gsx"
+
+component Panel(Attrs gsx.Attrs, children gsx.Node, attrs gsx.Attrs) {
+	<section { attrs... }><i { Attrs... }></i>{children}</section>
 }
 
 component Home() {
-	<Panel attrs={{ "data-a": "1" }}>x</Panel>
-	<Panel Attrs={{ "data-a": "1" }}>x</Panel>
+	<Panel attrs={{ "data-a": "1" }} Attrs={{ "data-b": "2" }}>x</Panel>
 }

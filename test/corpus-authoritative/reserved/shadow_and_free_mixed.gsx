@@ -9,6 +9,6 @@ func bags() []gsx.Attrs {
 	}
 }
 
-component Mixed() {
+component Mixed(attrs gsx.Attrs) {
 	<div { attrs... }>{ for _, attrs := range bags() { <span { attrs... }>i</span> } }</div>
 }

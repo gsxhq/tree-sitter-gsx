@@ -1,6 +1,8 @@
 package views
 
-component Wrap[T string | int](title T) {
+import "github.com/gsxhq/gsx"
+
+component Wrap[T string | int](title T, children gsx.Node) {
 	<div>{title}{children}</div>
 }
 

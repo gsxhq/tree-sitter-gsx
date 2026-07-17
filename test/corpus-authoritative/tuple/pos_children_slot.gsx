@@ -1,8 +1,10 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 func makeText(tag string) (string, error) { return "[" + tag + "]", nil }
 
-component Wrap() {
+component Wrap(children gsx.Node) {
 	<div>{children}</div>
 }
 

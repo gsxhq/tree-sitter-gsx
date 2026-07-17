@@ -8,11 +8,11 @@ func strAttr(a gsx.Attrs, key string) string {
 	return s
 }
 
-component Panel() {
+component Panel(attrs gsx.Attrs) {
 	<div { attrs... }>p</div>
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Panel attrs={{ "data-n": strAttr(attrs, "n") }}/>
 }
 

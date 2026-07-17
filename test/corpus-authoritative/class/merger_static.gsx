@@ -1,3 +1,5 @@
 package views
 
-component Card() { <section class="card" { attrs... }>{children}</section> }
+
+import "github.com/gsxhq/gsx"
+component Card(children gsx.Node, attrs gsx.Attrs) { <section class="card" { attrs... }>{children}</section> }

@@ -1,6 +1,8 @@
 package views
 
-component Bare(title string) {
+
+import "github.com/gsxhq/gsx"
+component Bare(title string, attrs gsx.Attrs) {
 	<div { attrs... }>{title}</div>
 }
 

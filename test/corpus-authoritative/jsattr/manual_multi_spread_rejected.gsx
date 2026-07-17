@@ -1,6 +1,8 @@
 package views
 
-component Box() {
+
+import "github.com/gsxhq/gsx"
+component Box(children gsx.Node, attrs gsx.Attrs) {
 	<div { attrs... } id="x" { attrs... }>{children}</div>
 }
 

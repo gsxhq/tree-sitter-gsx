@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Counter(signals gsx.Attrs) {
+component Counter(signals gsx.Attrs, children gsx.Node) {
 	<button { signals... }>{children}</button>
 }
 

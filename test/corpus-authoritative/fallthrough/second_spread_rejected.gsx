@@ -2,6 +2,6 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Link(extra gsx.Attrs) {
+component Link(extra gsx.Attrs, attrs gsx.Attrs) {
 	<a href="/base" { attrs... } { extra... }>x</a>
 }

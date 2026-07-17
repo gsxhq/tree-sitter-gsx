@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Target(first string, formatted string, ordered gsx.Attrs, last string) {
+component Target(first string, formatted string, ordered gsx.Attrs, last string, attrs gsx.Attrs) {
 	<div { ordered... } { attrs... }>{first}{formatted}{last}</div>
 }
 

@@ -1,5 +1,7 @@
 package views
 
-component Box(w int) {
+
+import "github.com/gsxhq/gsx"
+component Box(w int, attrs gsx.Attrs) {
 	<div style=f`width:@{w}px` { attrs... }>x</div>
 }

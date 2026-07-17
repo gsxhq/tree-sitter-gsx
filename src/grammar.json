@@ -7783,7 +7783,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "[A-Za-z][A-Za-z0-9.\\-]*"
+        "value": "[\\p{XID_Start}][_\\p{XID_Continue}.\\-]*"
       }
     },
     "attribute": {
@@ -7829,7 +7829,7 @@
     },
     "attribute_name": {
       "type": "PATTERN",
-      "value": "[A-Za-z_@:][A-Za-z0-9_@:.\\-]*"
+      "value": "[_@:\\p{XID_Start}][_\\p{XID_Continue}@:.\\-]*"
     },
     "ordered_attrs_attribute": {
       "type": "SEQ",

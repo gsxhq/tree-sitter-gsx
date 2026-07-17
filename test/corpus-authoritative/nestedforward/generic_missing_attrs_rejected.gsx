@@ -1,5 +1,7 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 component Bare[T any](items []T) {
 	<ul>
 		{ for _, it := range items {
@@ -8,7 +10,7 @@ component Bare[T any](items []T) {
 	</ul>
 }
 
-component Wrap() {
+component Wrap(attrs gsx.Attrs) {
 	<Bare items={[]string{"a"}} data-x="1" { attrs... }/>
 }
 

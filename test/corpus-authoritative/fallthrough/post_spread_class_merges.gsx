@@ -1,6 +1,8 @@
 package views
 
-component Box() {
+
+import "github.com/gsxhq/gsx"
+component Box(attrs gsx.Attrs) {
 	<div { attrs... } class="forced">y</div>
 }
 

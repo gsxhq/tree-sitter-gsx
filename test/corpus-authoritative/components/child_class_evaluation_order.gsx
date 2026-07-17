@@ -1,8 +1,10 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 var state bool
 
-component Card() { <div>{children}</div> }
+component Card(children gsx.Node, attrs gsx.Attrs) { <div {attrs...}>{children}</div> }
 
 component Page() {
 	<Card class={ setState(), if state { "on" } else { "off" } }>x</Card>

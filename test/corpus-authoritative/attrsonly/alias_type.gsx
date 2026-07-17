@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-type Component = func(...gsx.Attr) gsx.Node
+type Component = func(attrs ...gsx.Attr) gsx.Node
 
 type thingProps struct {
 	Label string

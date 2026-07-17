@@ -1,6 +1,8 @@
 package views
 
-component Field(id string) {
+
+import "github.com/gsxhq/gsx"
+component Field(id string, attrs gsx.Attrs) {
 	<div class="wrap"><input id={id} { attrs... }/></div>
 }
 

@@ -1,3 +1,5 @@
 package views
 
-component Page() { <style { attrs... }>.c{color:red}</style> }
+
+import "github.com/gsxhq/gsx"
+component Page(attrs gsx.Attrs) { <style { attrs... }>.c{color:red}</style> }

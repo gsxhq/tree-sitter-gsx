@@ -1,10 +1,12 @@
 package views
 
-component Link() {
+
+import "github.com/gsxhq/gsx"
+component Link(attrs gsx.Attrs) {
 	<a { attrs... }>go</a>
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Link { attrs... }/>
 }
 

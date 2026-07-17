@@ -11,5 +11,5 @@ component Nav(p navProps) {
 }
 
 component Page() {
-	<Nav data-url-next={"javascript:alert(1)"} data-x={"keep"}/>
+	<Nav p={navProps{Attrs: gsx.Attrs{{Key: "data-url-next", Value: "javascript:alert(1)"}, {Key: "data-x", Value: "keep"}}}}/>
 }

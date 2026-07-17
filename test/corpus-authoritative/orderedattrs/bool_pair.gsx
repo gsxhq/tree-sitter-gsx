@@ -7,5 +7,5 @@ component Card(toggleAttrs gsx.Attrs) {
 }
 
 component Page() {
-	<Card toggle-attrs={{ "data-show": true, "data-hide": false }}/>
+	<Card toggleAttrs={{ "data-show": true, "data-hide": false }}/>
 }

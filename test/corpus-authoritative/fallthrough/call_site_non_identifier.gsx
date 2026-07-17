@@ -1,6 +1,8 @@
 package views
 
-component Button() {
+
+import "github.com/gsxhq/gsx"
+component Button(children gsx.Node, attrs gsx.Attrs) {
 	<button { attrs... }>{children}</button>
 }
 

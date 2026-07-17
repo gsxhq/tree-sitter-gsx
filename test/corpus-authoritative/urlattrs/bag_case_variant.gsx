@@ -7,5 +7,5 @@ component Link(linkAttrs gsx.Attrs) {
 }
 
 component Page() {
-	<Link link-attrs={{ "HREF": "javascript:alert(1)" }}/>
+	<Link linkAttrs={{ "HREF": "javascript:alert(1)" }}/>
 }

@@ -1,6 +1,8 @@
 package views
 
-component Button(variant string) {
+
+import "github.com/gsxhq/gsx"
+component Button(variant string, children gsx.Node) {
 	<button class="btn" data-variant={variant}>{children}</button>
 }
 

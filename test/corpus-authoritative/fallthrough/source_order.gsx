@@ -1,6 +1,8 @@
 package views
 
-component Field(label string) {
+
+import "github.com/gsxhq/gsx"
+component Field(label string, attrs gsx.Attrs) {
 	<input { attrs... }/>
 }
 

@@ -1,6 +1,8 @@
 package views
 
-component Chip() {
+
+import "github.com/gsxhq/gsx"
+component Chip(attrs gsx.Attrs) {
 	<span { attrs... }>x</span>
 }
 

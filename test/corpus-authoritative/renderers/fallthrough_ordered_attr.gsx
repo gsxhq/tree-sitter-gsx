@@ -1,10 +1,12 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 import "corpustest/cases/renderers_fallthrough_ordered_attr/pg"
 
 func mkText(s string, valid bool) pg.Text { return pg.Text{String: s, Valid: valid} }
 
-component Panel() {
+component Panel(attrs gsx.Attrs) {
 	<section { attrs... }>x</section>
 }
 

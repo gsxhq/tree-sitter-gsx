@@ -2,7 +2,7 @@ package views
 
 import "github.com/gsxhq/gsx"
 
-component Panel(lead gsx.Node) {
+component Panel(lead gsx.Node, children gsx.Node) {
 	<div>{lead}{children}</div>
 }
 

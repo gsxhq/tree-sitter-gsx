@@ -186,13 +186,14 @@ module.exports = grammar(goGrammar, {
 
     // Tag name: one token covering plain (<div>), dotted/qualified
     // (<ui.Button>, <p.Content>), and hyphenated custom-element/web-component
-    // (<el-dialog>, <turbo-frame>) names. A dedicated token (letters, then
-    // letters/digits/./-) rather than composing identifiers, because a
-    // hyphen can't be a token boundary (it's the minus operator). It does
+    // (<el-dialog>, <turbo-frame>) names. A dedicated token (a Unicode Go
+    // identifier start, then identifier continuations/./-) is used instead of
+    // composing identifiers because a hyphen can't be a token boundary (it's
+    // the minus operator). It does
     // NOT shadow Go's `identifier`: tree-sitter's lexer is context-sensitive,
     // so tag_name is only a candidate in element-name position (right after a
     // markup `<`), never where a Go identifier is expected — verified.
-    tag_name: $ => token(/[A-Za-z][A-Za-z0-9.\-]*/),
+    tag_name: $ => token(/[\p{XID_Start}][_\p{XID_Continue}.\-]*/),
 
     attribute: $ => choice(
       $.embedded_attribute,
@@ -206,7 +207,7 @@ module.exports = grammar(goGrammar, {
       $.content_comment,
     ),
 
-    attribute_name: $ => /[A-Za-z_@:][A-Za-z0-9_@:.\-]*/,
+    attribute_name: $ => /[_@:\p{XID_Start}][_\p{XID_Continue}@:.\-]*/,
 
     // Ordered-attrs literal value: name={{ "k": v, "b", ... }} — a `{{ }}`
     // comma-list of key(:value)? pairs (an ast.Attrs literal). `key` is a Go

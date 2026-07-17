@@ -1,13 +1,15 @@
 package views
 
-component div(deep bool) {
+
+import "github.com/gsxhq/gsx"
+component div(deep bool, children gsx.Node) {
 	if deep {
 		<span>{children}</span>
 	}
 	<div>{children}</div>
 }
 
-component span() {
+component span(children gsx.Node) {
 	<span><div>{children}</div></span>
 }
 

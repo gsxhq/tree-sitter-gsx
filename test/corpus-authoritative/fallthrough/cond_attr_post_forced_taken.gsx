@@ -1,6 +1,8 @@
 package views
 
-component Box(active bool) {
+
+import "github.com/gsxhq/gsx"
+component Box(active bool, attrs gsx.Attrs) {
 	<button { attrs... } { if active { id="mine" } }>x</button>
 }
 

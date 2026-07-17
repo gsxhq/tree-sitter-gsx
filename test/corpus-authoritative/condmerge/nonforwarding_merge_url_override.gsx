@@ -1,6 +1,8 @@
 package views
 
-component Link() { <a { attrs... }>component</a> }
+
+import "github.com/gsxhq/gsx"
+component Link(attrs gsx.Attrs) { <a { attrs... }>component</a> }
 
 component Cases(dangerous string, on bool) {
 	<a href="javascript:static-first()" href={ dangerous } class="base" { if on { class="on" } }>dynamic-wins</a>

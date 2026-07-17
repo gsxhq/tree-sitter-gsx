@@ -11,7 +11,7 @@ component (p home) Page(d pageData) {
 	<html>
 		<body>
 			<h1>{ d.Title }</h1>
-			<p.Content { d... }/>
+			<p.Content d={d}/>
 		</body>
 	</html>
 }
@@ -19,7 +19,7 @@ component (p home) Page(d pageData) {
 component (p home) Content(d pageData) {
 	<main>
 		<h2>{ d.Title }</h2>
-		<p.Partial { d... }/>
+		<p.Partial d={d}/>
 	</main>
 }
 

@@ -10,7 +10,7 @@ func compute() string {
 	return "c"
 }
 
-component Panel() {
+component Panel(attrs gsx.Attrs) {
 	<div { attrs... }>p</div>
 }
 

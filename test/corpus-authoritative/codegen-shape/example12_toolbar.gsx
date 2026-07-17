@@ -1,6 +1,8 @@
 package views
 
-component Button(variant string) {
+
+import "github.com/gsxhq/gsx"
+component Button(variant string, children gsx.Node, attrs gsx.Attrs) {
 	<button type="button" class={ "btn", variantClass(variant) } { attrs... }>{children}</button>
 }
 
@@ -8,7 +10,7 @@ component Toolbar() {
 	<div><Button variant="primary" class="w-full" data-test="save" hx-post="/save" @click="go()">Save</Button></div>
 }
 
-component Field(label string) {
+component Field(label string, attrs gsx.Attrs) {
 	<div class="field"><label>{label}</label><input class="control" { attrs... }/></div>
 }
 

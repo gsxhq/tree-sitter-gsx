@@ -12,7 +12,7 @@ func drop(attrs []gsx.Attr, key string) []gsx.Attr {
 	return out
 }
 
-func named(name string) func(...gsx.Attr) gsx.Node {
+func named(name string) func(attrs ...gsx.Attr) gsx.Node {
 	return func(attrs ...gsx.Attr) gsx.Node {
 		return <svg stroke-width="2" class="size-5" { drop(attrs, "id")... }>{ name }</svg>
 	}

@@ -1,6 +1,8 @@
 package views
 
-component Btn(a bool, b bool) {
+
+import "github.com/gsxhq/gsx"
+component Btn(a bool, b bool, attrs gsx.Attrs) {
 	<button { attrs... } { if a { formaction="/x" } } { if b { formaction="/y" } }>x</button>
 }
 

@@ -1,6 +1,8 @@
 package views
 
-component Child(variant string) {
+
+import "github.com/gsxhq/gsx"
+component Child(variant string, children gsx.Node, attrs gsx.Attrs) {
 	<a class={ "a", variant } { attrs... }>{children}</a>
 }
 

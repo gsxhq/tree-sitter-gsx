@@ -1,6 +1,8 @@
 package views
 
-component Panel() {
+
+import "github.com/gsxhq/gsx"
+component Panel(attrs gsx.Attrs) {
 	<div { attrs... }>p</div>
 }
 

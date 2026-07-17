@@ -1,6 +1,8 @@
 package views
 
-component Card(title string) {
+import "github.com/gsxhq/gsx"
+
+component Card(title string, children gsx.Node) {
 	<section><h2>{title}</h2>{children}</section>
 }
 

@@ -1,6 +1,8 @@
 package views
 
-component Btn(active bool) {
+
+import "github.com/gsxhq/gsx"
+component Btn(active bool, attrs gsx.Attrs) {
 	<button { attrs... } { if active { formaction="/forced" } }>x</button>
 }
 

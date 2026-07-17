@@ -1,8 +1,10 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 var demoOnce = NewOnce()
 
-component Once(handle *OnceHandle) {
+component Once(handle *OnceHandle, children gsx.Node) {
 	{ if handle.firstRender(ctx) { { children } } }
 }
 

@@ -1,6 +1,8 @@
 package views
 
-component List[T any](items []T) {
+
+import "github.com/gsxhq/gsx"
+component List[T any](items []T, attrs gsx.Attrs) {
 	<ul class="list" { attrs... }>
 		{ for _, it := range items {
 			<li>{ it |> printf("%v") }</li>
@@ -8,7 +10,7 @@ component List[T any](items []T) {
 	</ul>
 }
 
-component Wrap() {
+component Wrap(attrs gsx.Attrs) {
 	<List items={[]string{"a", "b"}} { attrs... }/>
 }
 

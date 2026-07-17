@@ -1,6 +1,8 @@
 package views
 
-component Target(first string, last string) {
+
+import "github.com/gsxhq/gsx"
+component Target(first string, last string, attrs gsx.Attrs) {
 	<div { attrs... }>{first}{last}</div>
 }
 

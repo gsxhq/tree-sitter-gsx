@@ -1,14 +1,16 @@
 package views
 
-component C() {
+
+import "github.com/gsxhq/gsx"
+component C(attrs gsx.Attrs) {
 	<div class="c-root" data-scalar="c-default" { attrs... }>leaf</div>
 }
 
-component B() {
+component B(attrs gsx.Attrs) {
 	<C class="b-add" { attrs... }/>
 }
 
-component A() {
+component A(attrs gsx.Attrs) {
 	<B class="a-add" { attrs... }/>
 }
 

@@ -20,7 +20,7 @@ component Anchor(p anchorProps) {
 
 component Page() {
 	<div>
-		<Img src={"data:image/png;base64,iVBORw0KGgo="}/>
-		<Anchor href={"data:image/png;base64,iVBORw0KGgo="}/>
+		<Img p={imgProps{Attrs: gsx.Attrs{{Key: "src", Value: "data:image/png;base64,iVBORw0KGgo="}}}}/>
+		<Anchor p={anchorProps{Attrs: gsx.Attrs{{Key: "href", Value: "data:image/png;base64,iVBORw0KGgo="}}}}/>
 	</div>
 }

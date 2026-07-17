@@ -11,7 +11,7 @@ component renderIcon(p iconProps) {
 	<svg { p.Attrs... }>{p.Name}</svg>
 }
 
-func icon(name string) func(gsx.Attrs) gsx.Node {
+func icon(name string) func(attrs gsx.Attrs) gsx.Node {
 	return func(attrs gsx.Attrs) gsx.Node {
 		return renderIcon(iconProps{Name: name, Attrs: attrs})
 	}

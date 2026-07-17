@@ -1,6 +1,8 @@
 package views
 
-component Panel(title string) {
+
+import "github.com/gsxhq/gsx"
+component Panel(title string, attrs gsx.Attrs) {
 	<section class="panel" data-role="box" { attrs.Without("data-skip")... }>{title}</section>
 }
 

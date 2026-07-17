@@ -58,6 +58,48 @@ component Card(title string, count int) {
         close_name: (tag_name)))))
 
 ==================
+Unicode component and exact-name parameter identifiers
+==================
+
+package views
+
+component Δέλτα(label数据٣ string) {
+	<p>{label数据٣}</p>
+}
+
+component Page() {
+	<Δέλτα label数据٣="γειά"/>
+}
+
+---
+
+(source_file
+  (package_clause
+    (package_identifier))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (type_identifier)))
+    body: (component_body
+      (element
+        open_name: (tag_name)
+        (hole
+          (identifier))
+        close_name: (tag_name))))
+  (component_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (component_body
+      (element
+        name: (tag_name)
+        (attribute
+          (static_attribute
+            name: (attribute_name)
+            value: (attribute_value_string)))))))
+
+==================
 method component with a receiver
 ==================
 

@@ -7,5 +7,5 @@ component Card(safeAttrs gsx.Attrs) {
 }
 
 component Page() {
-	<Card safe-attrs={{ "title": "a\"b", "bad name": "x" }}/>
+	<Card safeAttrs={{ "title": "a\"b", "bad name": "x" }}/>
 }

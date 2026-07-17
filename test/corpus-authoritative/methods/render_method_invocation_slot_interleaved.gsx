@@ -1,12 +1,14 @@
 package views
 
+
+import "github.com/gsxhq/gsx"
 type UsersPage struct {
 	Before string
 	Mid    int
 	After  bool
 }
 
-component (p UsersPage) Wrap() {
+component (p UsersPage) Wrap(children gsx.Node) {
 	<div>{children}</div>
 }
 

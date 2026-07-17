@@ -11,5 +11,5 @@ component Ctrl(p ctrlProps) {
 }
 
 component Page() {
-	<Ctrl hx-get={"/path"} data-role={"tab"}/>
+	<Ctrl p={ctrlProps{Attrs: gsx.Attrs{{Key: "hx-get", Value: "/path"}, {Key: "data-role", Value: "tab"}}}}/>
 }

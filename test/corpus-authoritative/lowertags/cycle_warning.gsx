@@ -1,10 +1,12 @@
 package views
 
-component div() {
+
+import "github.com/gsxhq/gsx"
+component div(children gsx.Node) {
 	<div><span>{children}</span></div>
 }
 
-component span() {
+component span(children gsx.Node) {
 	<span><div>{children}</div></span>
 }
 

@@ -8,7 +8,7 @@ func strAttr(a gsx.Attrs, key string) string {
 	return s
 }
 
-component Widget() {
+component Widget(attrs gsx.Attrs) {
 	<div style={ css`color:@{ strAttr(attrs, "c") }` }>x</div>
 }
 

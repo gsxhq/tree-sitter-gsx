@@ -1,3 +1,5 @@
 package views
 
-component Page() { <script { attrs... }>init()</script> }
+
+import "github.com/gsxhq/gsx"
+component Page(attrs gsx.Attrs) { <script { attrs... }>init()</script> }

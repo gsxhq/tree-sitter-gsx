@@ -11,7 +11,7 @@ component (p home) Page(d pageData) {
 	<html>
 		<body>
 			<h1>{ d.Title }</h1>
-			<p.Content { d... }/>
+			<p.Content d={d}/>
 		</body>
 	</html>
 }

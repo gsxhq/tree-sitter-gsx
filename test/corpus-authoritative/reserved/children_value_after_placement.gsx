@@ -1,6 +1,8 @@
 package views
 
-component Kids() {
+
+import "github.com/gsxhq/gsx"
+component Kids(children gsx.Node) {
 	{{ hasKids := children != nil }}
 	<section data-has-kids={hasKids}>{children}</section>
 }

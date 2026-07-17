@@ -11,7 +11,7 @@ component renderIcon(p iconProps) {
 	<svg { p.Attrs... }>{p.Name}</svg>
 }
 
-type Component[T any] func(...gsx.Attr) gsx.Node
+type Component[T any] func(attrs ...gsx.Attr) gsx.Node
 
 var Y Component[int] = func(attrs ...gsx.Attr) gsx.Node {
 	return renderIcon(iconProps{Name: "y", Attrs: gsx.Attrs(attrs)})

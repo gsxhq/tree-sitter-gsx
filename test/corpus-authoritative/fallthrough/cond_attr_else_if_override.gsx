@@ -1,6 +1,8 @@
 package views
 
-component Badge(n int) {
+
+import "github.com/gsxhq/gsx"
+component Badge(n int, attrs gsx.Attrs) {
 	<div { if n == 1 { data-a="one" } else if n == 2 { data-a="two" } else { data-a="many" } } { attrs... }>x</div>
 }
 

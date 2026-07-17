@@ -11,5 +11,5 @@ component Link(p linkProps) {
 }
 
 component Page() {
-	<Link href={gsx.RawURL("app://z")}/>
+	<Link p={linkProps{Attrs: gsx.Attrs{{Key: "href", Value: gsx.RawURL("app://z")}}}}/>
 }

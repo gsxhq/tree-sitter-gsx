@@ -12,7 +12,7 @@ component Icon(name string) {
 	<span data-name={name}>i</span>
 }
 
-component Wrapper(base string) {
+component Wrapper(base string, attrs gsx.Attrs) {
 	<Icon name={ base |> default(strAttr(attrs, "fallback")) }/>
 }
 

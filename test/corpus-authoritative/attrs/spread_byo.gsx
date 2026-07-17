@@ -10,6 +10,6 @@ var items = []props{{label: <p>x</p>}}
 component C(p props) { <div>{p.label}</div> }
 component page() {
   { for _, item := range items {
-    <C {item...} />
+    <C p={item} />
   } }
 }

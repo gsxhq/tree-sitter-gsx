@@ -7,5 +7,5 @@ component Card(dupAttrs gsx.Attrs) {
 }
 
 component Page() {
-	<Card dup-attrs={{ "data-x": "1", "data-x": "2" }}/>
+	<Card dupAttrs={{ "data-x": "1", "data-x": "2" }}/>
 }

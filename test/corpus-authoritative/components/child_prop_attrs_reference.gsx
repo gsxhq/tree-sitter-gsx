@@ -1,9 +1,11 @@
 package views
 
-component Child() {
+
+import "github.com/gsxhq/gsx"
+component Child(attrs gsx.Attrs) {
 	<div { attrs... }>child</div>
 }
 
-component Wrapper() {
+component Wrapper(attrs gsx.Attrs) {
 	<Child class={attrs.Class()}/>
 }

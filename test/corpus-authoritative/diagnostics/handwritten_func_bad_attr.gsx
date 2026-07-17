@@ -1,3 +1,3 @@
 package views
 
-component Page(s string) { <Badge count={s}/> }
+component Page(count int) { <Badge p={BadgeProps{Count: count}}/> }
